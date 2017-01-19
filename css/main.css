@@ -3,11 +3,15 @@ body {
   font-family: 'Raleway', sans-serif;
 }
 *{
-  border: 1px solid rgba(0,0,0,0.3);
+  border: 1px solid rgba(0,0,0,1);
   margin:0;
   padding:0;
 }
-
+.jumbotron {
+  background: url(https://raw.githubusercontent.com/swimmerbilly/swimmerbilly.github.io/master/Banner-Temp.jpg) no-repeat center center;
+  background-size: cover;
+  height: 800px;
+}
 .navigation {
   text-align: center;
 }
@@ -36,7 +40,6 @@ li {
 }
 
 .banner {
-  background-image: url("https://raw.githubusercontent.com/swimmerbilly/swimmerbilly.github.io/master/Banner-Temp.jpg");
   background-size: cover;
   background-position: Top center;
   position:fixed;
