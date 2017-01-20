@@ -6,6 +6,11 @@ p{
   color:blue;
   font-size:30px;
 }
+.container {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 0 10px;
+}
 .jumbotron {
   background: url(https://raw.githubusercontent.com/swimmerbilly/swimmerbilly.github.io/master/Banner-Temp.jpg) no-repeat center center;
   background-size: cover;
