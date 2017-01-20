@@ -10,6 +10,7 @@ p{
   max-width: 940px;
   margin: 0 auto;
   padding: 0 10px;
+  border: 5px;
 }
 .jumbotron {
   background: url(https://raw.githubusercontent.com/swimmerbilly/swimmerbilly.github.io/master/Banner-Temp.jpg) no-repeat center center;
