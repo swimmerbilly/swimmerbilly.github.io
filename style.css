@@ -3,12 +3,9 @@ border: 3px solid rgb(0,0,0);
 }
 h1{
   color:rgb(40,40,40);
-  font-size:50px;
-  border:10px;
-  background-color:blue;
+  font-size:100px;
 }
 p{
   color:blue;
   font-size:30px;
-  border:10px;
 }
