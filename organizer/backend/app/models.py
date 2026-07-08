@@ -1,0 +1,191 @@
+import enum
+from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.database import Base
+
+
+class ProjectStatus(str, enum.Enum):
+    ACTIVE = "active"
+    ON_HOLD = "on_hold"
+    COMPLETED = "completed"
+    ARCHIVED = "archived"
+
+
+class CommunicationDirection(str, enum.Enum):
+    INBOUND = "inbound"
+    OUTBOUND = "outbound"
+
+
+class CallerRole(str, enum.Enum):
+    ARCHITECT = "architect"
+    CONTRACTOR = "contractor"
+    CLIENT = "client"
+    VENDOR = "vendor"
+    OTHER = "other"
+
+
+class Project(Base):
+    __tablename__ = "projects"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    harvest_id: Mapped[int | None] = mapped_column(Integer, unique=True, index=True, nullable=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[ProjectStatus] = mapped_column(
+        Enum(ProjectStatus), default=ProjectStatus.ACTIVE, nullable=False
+    )
+    color: Mapped[str] = mapped_column(String(7), default="#3b82f6")
+    harvest_client_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    harvest_code: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    harvest_synced_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    emails: Mapped[list["Email"]] = relationship(back_populates="project")
+    texts: Mapped[list["TextMessage"]] = relationship(back_populates="project")
+    calls: Mapped[list["Call"]] = relationship(back_populates="project")
+    voicemails: Mapped[list["Voicemail"]] = relationship(back_populates="project")
+
+
+class Email(Base):
+    __tablename__ = "emails"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    project_id: Mapped[int | None] = mapped_column(ForeignKey("projects.id"), nullable=True)
+    direction: Mapped[CommunicationDirection] = mapped_column(
+        Enum(CommunicationDirection), default=CommunicationDirection.INBOUND
+    )
+    from_address: Mapped[str] = mapped_column(String(320), nullable=False)
+    to_address: Mapped[str] = mapped_column(String(320), nullable=False)
+    subject: Mapped[str] = mapped_column(String(500), default="")
+    body: Mapped[str] = mapped_column(Text, default="")
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_starred: Mapped[bool] = mapped_column(Boolean, default=False)
+    account_label: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    external_message_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    received_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    project: Mapped[Project | None] = relationship(back_populates="emails")
+
+
+class TextMessage(Base):
+    __tablename__ = "text_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    project_id: Mapped[int | None] = mapped_column(ForeignKey("projects.id"), nullable=True)
+    direction: Mapped[CommunicationDirection] = mapped_column(
+        Enum(CommunicationDirection), default=CommunicationDirection.INBOUND
+    )
+    contact_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    phone_number: Mapped[str] = mapped_column(String(30), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False)
+    grasshopper_message_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    sent_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    project: Mapped[Project | None] = relationship(back_populates="texts")
+
+
+class Call(Base):
+    __tablename__ = "calls"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    project_id: Mapped[int | None] = mapped_column(ForeignKey("projects.id"), nullable=True)
+    direction: Mapped[CommunicationDirection] = mapped_column(
+        Enum(CommunicationDirection), default=CommunicationDirection.INBOUND
+    )
+    contact_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    caller_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    phone_number: Mapped[str] = mapped_column(String(30), nullable=False)
+    duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    grasshopper_message_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    called_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    project: Mapped[Project | None] = relationship(back_populates="calls")
+
+
+class Voicemail(Base):
+    __tablename__ = "voicemails"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    project_id: Mapped[int | None] = mapped_column(ForeignKey("projects.id"), nullable=True)
+    contact_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    phone_number: Mapped[str] = mapped_column(String(30), nullable=False)
+    transcript: Mapped[str | None] = mapped_column(Text, nullable=True)
+    audio_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    is_listened: Mapped[bool] = mapped_column(Boolean, default=False)
+    grasshopper_message_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    received_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    project: Mapped[Project | None] = relationship(back_populates="voicemails")
+
+
+class AssistantConversation(Base):
+    __tablename__ = "assistant_conversations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    title: Mapped[str] = mapped_column(String(200), default="New conversation")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    messages: Mapped[list["AssistantMessage"]] = relationship(
+        back_populates="conversation", order_by="AssistantMessage.created_at"
+    )
+
+
+class AssistantMessage(Base):
+    __tablename__ = "assistant_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    conversation_id: Mapped[int] = mapped_column(
+        ForeignKey("assistant_conversations.id"), nullable=False, index=True
+    )
+    role: Mapped[str] = mapped_column(String(20), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    conversation: Mapped[AssistantConversation] = relationship(back_populates="messages")
+
+
+class DayPlan(Base):
+    __tablename__ = "day_plans"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    plan_date: Mapped[str] = mapped_column(String(10), unique=True, index=True, nullable=False)
+    greeting: Mapped[str] = mapped_column(Text, default="")
+    today_focus: Mapped[str] = mapped_column(Text, default="[]")
+    week_focus: Mapped[str] = mapped_column(Text, default="[]")
+    month_focus: Mapped[str] = mapped_column(Text, default="[]")
+    generated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    checklist_items: Mapped[list["ChecklistItem"]] = relationship(
+        back_populates="day_plan", order_by="ChecklistItem.sort_order"
+    )
+
+
+class ChecklistItem(Base):
+    __tablename__ = "checklist_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    day_plan_id: Mapped[int] = mapped_column(ForeignKey("day_plans.id"), nullable=False, index=True)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    priority: Mapped[str] = mapped_column(String(10), default="medium")
+    is_completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_user_added: Mapped[bool] = mapped_column(Boolean, default=False)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    day_plan: Mapped[DayPlan] = relationship(back_populates="checklist_items")
