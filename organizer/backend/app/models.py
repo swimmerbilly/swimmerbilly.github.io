@@ -76,6 +76,7 @@ class TextMessage(Base):
     phone_number: Mapped[str] = mapped_column(String(30), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
+    grasshopper_message_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     sent_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
@@ -94,6 +95,7 @@ class Call(Base):
     phone_number: Mapped[str] = mapped_column(String(30), nullable=False)
     duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    grasshopper_message_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     called_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
@@ -111,6 +113,7 @@ class Voicemail(Base):
     audio_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
     is_listened: Mapped[bool] = mapped_column(Boolean, default=False)
+    grasshopper_message_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     received_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

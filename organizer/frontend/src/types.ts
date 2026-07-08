@@ -28,6 +28,25 @@ export interface HarvestSyncResult {
   archived: number;
 }
 
+export interface GrasshopperStatus {
+  configured: boolean;
+  imap_configured: boolean;
+  webhook_configured: boolean;
+  imap_host: string | null;
+  imap_user: string | null;
+  imap_folder: string | null;
+  webhook_url_hint: string | null;
+}
+
+export interface GrasshopperSyncResult {
+  emails_scanned: number;
+  events_found: number;
+  voicemails_created: number;
+  calls_created: number;
+  texts_created: number;
+  skipped: number;
+}
+
 export interface Email {
   id: number;
   project_id: number | null;
@@ -50,6 +69,7 @@ export interface TextMessage {
   phone_number: string;
   body: string;
   is_read: boolean;
+  grasshopper_message_id: string | null;
   sent_at: string;
   created_at: string;
 }
@@ -62,6 +82,7 @@ export interface Call {
   phone_number: string;
   duration_seconds: number | null;
   notes: string | null;
+  grasshopper_message_id: string | null;
   called_at: string;
   created_at: string;
 }
@@ -75,6 +96,7 @@ export interface Voicemail {
   audio_path: string | null;
   duration_seconds: number | null;
   is_listened: boolean;
+  grasshopper_message_id: string | null;
   received_at: string;
   created_at: string;
 }

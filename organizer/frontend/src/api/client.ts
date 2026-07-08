@@ -2,6 +2,8 @@ import type {
   Call,
   DashboardStats,
   Email,
+  GrasshopperStatus,
+  GrasshopperSyncResult,
   HarvestStatus,
   HarvestSyncResult,
   Project,
@@ -42,6 +44,12 @@ export const api = {
   syncHarvestProjects: () =>
     request<HarvestSyncResult>("/harvest/sync", { method: "POST" }),
 
+  getGrasshopperStatus: () => request<GrasshopperStatus>("/grasshopper/status"),
+  syncGrasshopper: (sinceDays = 30) =>
+    request<GrasshopperSyncResult>(`/grasshopper/sync?since_days=${sinceDays}`, {
+      method: "POST",
+    }),
+
   getEmails: () => request<Email[]>("/emails"),
   createEmail: (data: Omit<Email, "id" | "created_at" | "received_at">) =>
     request<Email>("/emails", { method: "POST", body: JSON.stringify(data) }),
@@ -49,17 +57,17 @@ export const api = {
     request<Email>(`/emails/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
 
   getTexts: () => request<TextMessage[]>("/texts"),
-  createText: (data: Omit<TextMessage, "id" | "created_at" | "sent_at">) =>
+  createText: (data: Omit<TextMessage, "id" | "created_at" | "sent_at" | "grasshopper_message_id">) =>
     request<TextMessage>("/texts", { method: "POST", body: JSON.stringify(data) }),
   updateText: (id: number, data: Partial<Pick<TextMessage, "is_read" | "project_id">>) =>
     request<TextMessage>(`/texts/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
 
   getCalls: () => request<Call[]>("/calls"),
-  createCall: (data: Omit<Call, "id" | "created_at" | "called_at">) =>
+  createCall: (data: Omit<Call, "id" | "created_at" | "called_at" | "grasshopper_message_id">) =>
     request<Call>("/calls", { method: "POST", body: JSON.stringify(data) }),
 
   getVoicemails: () => request<Voicemail[]>("/voicemails"),
-  createVoicemail: (data: Omit<Voicemail, "id" | "created_at" | "received_at">) =>
+  createVoicemail: (data: Omit<Voicemail, "id" | "created_at" | "received_at" | "grasshopper_message_id">) =>
     request<Voicemail>("/voicemails", { method: "POST", body: JSON.stringify(data) }),
   updateVoicemail: (
     id: number,

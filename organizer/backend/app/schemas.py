@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -46,6 +47,36 @@ class HarvestSyncResult(BaseModel):
     created: int
     updated: int
     archived: int
+
+
+class GrasshopperStatus(BaseModel):
+    configured: bool
+    imap_configured: bool
+    webhook_configured: bool
+    imap_host: str | None = None
+    imap_user: str | None = None
+    imap_folder: str | None = None
+    webhook_url_hint: str | None = None
+
+
+class GrasshopperSyncResult(BaseModel):
+    emails_scanned: int
+    events_found: int
+    voicemails_created: int
+    calls_created: int
+    texts_created: int
+    skipped: int
+
+
+class GrasshopperWebhookEvent(BaseModel):
+    type: Literal["voicemail", "call", "text"]
+    phone_number: str
+    contact_name: str | None = None
+    body: str | None = None
+    transcript: str | None = None
+    duration_seconds: int | None = None
+    received_at: datetime | None = None
+    message_id: str | None = None
 
 
 class EmailBase(BaseModel):
@@ -101,6 +132,7 @@ class TextRead(TextBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    grasshopper_message_id: str | None = None
     sent_at: datetime
     created_at: datetime
 
@@ -128,6 +160,7 @@ class CallRead(CallBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    grasshopper_message_id: str | None = None
     called_at: datetime
     created_at: datetime
 
@@ -157,6 +190,7 @@ class VoicemailRead(VoicemailBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    grasshopper_message_id: str | None = None
     received_at: datetime
     created_at: datetime
 

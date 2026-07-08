@@ -77,9 +77,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173
-
-Open http://localhost:5173, go to **Projects**, and click **Sync from Harvest**.
+Open http://localhost:5173, go to **Integrations**, and sync from Harvest and Grasshopper.
 
 ## Harvest sync
 
@@ -89,14 +87,39 @@ Open http://localhost:5173, go to **Projects**, and click **Sync from Harvest**.
 - Re-sync updates existing projects and archives any that were removed from Harvest
 - Harvest-synced projects cannot be deleted locally — manage them in Harvest
 
+## Grasshopper sync
+
+Grasshopper does not offer a public API, so Life Organizer connects through the channels Grasshopper does support:
+
+1. **Voicemail email (IMAP)** — Grasshopper sends voicemail MP3s and transcriptions to your email. Point those notifications at an IMAP inbox, add the credentials to `.env`, and sync from the **Integrations** page.
+2. **Webhook (optional)** — For texts or other events, use Zapier or a custom script to `POST` JSON to `/api/grasshopper/webhook` with your `GRASSHOPPER_WEBHOOK_SECRET`.
+
+### Grasshopper setup
+
+1. In Grasshopper: **Settings → Notifications** — add the email address you use for IMAP (e.g. a Gmail inbox with an app password).
+2. Enable **voicemail-to-email** and **voicemail transcription**.
+3. Add to `organizer/backend/.env`:
+
+```env
+GRASSHOPPER_IMAP_HOST=imap.gmail.com
+GRASSHOPPER_IMAP_USER=you@example.com
+GRASSHOPPER_IMAP_PASSWORD=your_app_password
+GRASSHOPPER_IMAP_FOLDER=INBOX
+GRASSHOPPER_WEBHOOK_SECRET=optional_secret_for_custom_automations
+```
+
+4. Go to **Integrations** → **Sync from Inbox**
+
+Imported voicemails include transcripts and audio attachments. Duplicate emails are skipped automatically.
+
 ## Roadmap
 
 Future enhancements you may want to add:
 
 - [x] Harvest project sync
+- [x] Grasshopper voicemail sync (IMAP + webhook)
 - [ ] Link communications to projects from the UI
-- [ ] Gmail / IMAP email sync
-- [ ] Phone/SMS integration (Twilio, Android SMS backup)
+- [ ] Gmail / IMAP email sync (non-Grasshopper)
 - [ ] Calendar and task planning
 - [ ] Search across all communications
 - [ ] Desktop app (Electron or Tauri)
@@ -107,6 +130,7 @@ Future enhancements you may want to add:
 | Resource    | Endpoints                          |
 |-------------|------------------------------------|
 | Harvest     | `GET /api/harvest/status`, `POST /api/harvest/sync` |
+| Grasshopper | `GET /api/grasshopper/status`, `POST /api/grasshopper/sync`, `POST /api/grasshopper/webhook` |
 | Projects    | `GET/POST /api/projects`           |
 | Emails      | `GET/POST /api/emails`             |
 | Texts       | `GET/POST /api/texts`              |

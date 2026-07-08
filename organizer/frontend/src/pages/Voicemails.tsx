@@ -82,10 +82,23 @@ export default function VoicemailsPage() {
             style={{ cursor: "pointer" }}
           >
             <div>
-              <div className="title">{vm.contact_name || vm.phone_number}</div>
+              <div className="title">
+                {vm.contact_name || vm.phone_number}
+                {vm.grasshopper_message_id && (
+                  <span className="badge badge-grasshopper">Grasshopper</span>
+                )}
+              </div>
               <div className="meta">
                 Duration: {formatDuration(vm.duration_seconds)} · {formatDate(vm.received_at)}
               </div>
+              {vm.audio_path && (
+                <audio
+                  controls
+                  src={vm.audio_path}
+                  style={{ marginTop: "0.75rem", width: "100%" }}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              )}
               {vm.transcript && (
                 <p style={{ marginTop: "0.5rem" }}>
                   {vm.transcript.slice(0, 150)}

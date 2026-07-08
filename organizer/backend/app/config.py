@@ -12,12 +12,36 @@ class Settings(BaseSettings):
     harvest_account_id: str | None = None
     harvest_user_agent: str = "Life Organizer (organizer@localhost)"
 
+    grasshopper_imap_host: str | None = None
+    grasshopper_imap_port: int = 993
+    grasshopper_imap_user: str | None = None
+    grasshopper_imap_password: str | None = None
+    grasshopper_imap_folder: str = "INBOX"
+    grasshopper_webhook_secret: str | None = None
+    grasshopper_upload_dir: str = "uploads/grasshopper"
+
     class Config:
         env_file = ".env"
 
     @property
     def harvest_configured(self) -> bool:
         return bool(self.harvest_access_token and self.harvest_account_id)
+
+    @property
+    def grasshopper_imap_configured(self) -> bool:
+        return bool(
+            self.grasshopper_imap_host
+            and self.grasshopper_imap_user
+            and self.grasshopper_imap_password
+        )
+
+    @property
+    def grasshopper_webhook_configured(self) -> bool:
+        return bool(self.grasshopper_webhook_secret)
+
+    @property
+    def grasshopper_configured(self) -> bool:
+        return self.grasshopper_imap_configured or self.grasshopper_webhook_configured
 
 
 settings = Settings()
