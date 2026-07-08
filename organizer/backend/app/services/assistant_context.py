@@ -35,8 +35,9 @@ def build_workspace_context(db: Session) -> str:
     lines.extend(["", f"## Unread emails ({len(unread_emails)} recent)"])
     for email in unread_emails:
         preview = email.body[:120].replace("\n", " ") if email.body else ""
+        account = f" [{email.account_label}]" if email.account_label else ""
         lines.append(
-            f"- [{email.id}] From {email.from_address}: {email.subject or '(no subject)'} — {preview}"
+            f"- [{email.id}]{account} From {email.from_address}: {email.subject or '(no subject)'} — {preview}"
         )
     if not unread_emails:
         lines.append("- None")

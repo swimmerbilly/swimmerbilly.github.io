@@ -2,10 +2,9 @@ import email
 import imaplib
 from datetime import datetime, timedelta
 from email.message import Message
-from pathlib import Path
 
-from app.config import settings
-from app.services.grasshopper_parser import ParsedGrasshopperEvent, is_grasshopper_email, parse_grasshopper_email
+from app.services.grasshopper_parser import is_grasshopper_email, parse_grasshopper_email
+from app.services.mailbox_config import MailboxConfig, get_grasshopper_mailbox
 
 
 class GrasshopperError(Exception):
@@ -13,28 +12,33 @@ class GrasshopperError(Exception):
 
 
 def fetch_grasshopper_emails(since_days: int = 30) -> list[Message]:
-    if not settings.grasshopper_imap_configured:
+    mailbox = get_grasshopper_mailbox()
+    if not mailbox:
         raise GrasshopperError(
-            "Grasshopper IMAP is not configured. Set GRASSHOPPER_IMAP_HOST, "
-            "GRASSHOPPER_IMAP_USER, and GRASSHOPPER_IMAP_PASSWORD."
+            "Grasshopper IMAP is not configured. Set GRASSHOPPER_IMAP_* or WORK_EMAIL_IMAP_* "
+            "(Outlook) in organizer/backend/.env."
         )
 
+    return _fetch_messages(mailbox, since_days)
+
+
+def _fetch_messages(mailbox: MailboxConfig, since_days: int) -> list[Message]:
     since_date = (datetime.utcnow() - timedelta(days=since_days)).strftime("%d-%b-%Y")
     messages: list[Message] = []
 
     try:
-        mailbox = imaplib.IMAP4_SSL(settings.grasshopper_imap_host, settings.grasshopper_imap_port)
-        mailbox.login(settings.grasshopper_imap_user, settings.grasshopper_imap_password)
-        mailbox.select(settings.grasshopper_imap_folder)
+        connection = imaplib.IMAP4_SSL(mailbox.host, mailbox.port)
+        connection.login(mailbox.user, mailbox.password)
+        connection.select(mailbox.folder)
 
-        status, data = mailbox.search(None, f'(SINCE "{since_date}")')
+        status, data = connection.search(None, f'(SINCE "{since_date}")')
         if status != "OK":
             raise GrasshopperError("Could not search the Grasshopper inbox.")
 
         for num in data[0].split():
             if not num:
                 continue
-            fetch_status, fetched = mailbox.fetch(num, "(RFC822)")
+            fetch_status, fetched = connection.fetch(num, "(RFC822)")
             if fetch_status != "OK" or not fetched or not fetched[0]:
                 continue
             raw_email = fetched[0][1]
@@ -44,14 +48,16 @@ def fetch_grasshopper_emails(since_days: int = 30) -> list[Message]:
             if is_grasshopper_email(message):
                 messages.append(message)
 
-        mailbox.logout()
+        connection.logout()
     except imaplib.IMAP4.error as exc:
         raise GrasshopperError(f"IMAP connection failed: {exc}") from exc
 
     return messages
 
 
-def parse_grasshopper_messages(messages: list[Message]) -> list[ParsedGrasshopperEvent]:
+def parse_grasshopper_messages(messages: list[Message]) -> list:
+    from app.services.grasshopper_parser import ParsedGrasshopperEvent
+
     events: list[ParsedGrasshopperEvent] = []
     for message in messages:
         event = parse_grasshopper_email(message)

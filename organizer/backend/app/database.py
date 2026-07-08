@@ -53,6 +53,10 @@ def _migrate_projects_table() -> None:
 def _migrate_grasshopper_columns() -> None:
     inspector = inspect(engine)
     table_migrations = {
+        "emails": {
+            "account_label": "ALTER TABLE emails ADD COLUMN account_label VARCHAR(20)",
+            "external_message_id": "ALTER TABLE emails ADD COLUMN external_message_id VARCHAR(255)",
+        },
         "text_messages": {
             "grasshopper_message_id": "ALTER TABLE text_messages ADD COLUMN grasshopper_message_id VARCHAR(255)",
         },
@@ -73,11 +77,20 @@ def _migrate_grasshopper_columns() -> None:
                 if column_name not in existing:
                     connection.execute(text(statement))
 
+            if "grasshopper_message_id" in existing or "grasshopper_message_id" in migrations:
+                connection.execute(
+                    text(
+                        f"CREATE UNIQUE INDEX IF NOT EXISTS ix_{table_name}_grasshopper_message_id "
+                        f"ON {table_name} (grasshopper_message_id) "
+                        f"WHERE grasshopper_message_id IS NOT NULL"
+                    )
+                )
+
+        if "emails" in inspector.get_table_names():
             connection.execute(
                 text(
-                    f"CREATE UNIQUE INDEX IF NOT EXISTS ix_{table_name}_grasshopper_message_id "
-                    f"ON {table_name} (grasshopper_message_id) "
-                    f"WHERE grasshopper_message_id IS NOT NULL"
+                    "CREATE UNIQUE INDEX IF NOT EXISTS ix_emails_external_message_id "
+                    "ON emails (external_message_id) WHERE external_message_id IS NOT NULL"
                 )
             )
 

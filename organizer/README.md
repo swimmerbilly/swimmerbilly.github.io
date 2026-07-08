@@ -7,7 +7,7 @@ This is a **standalone application** living in the `organizer/` directory, separ
 ## What it does
 
 - **Projects** — Sync from Harvest (your source of truth) or add local-only projects
-- **Emails** — Log inbound/outbound emails, mark read/unread, star important ones
+- **Emails** — Sync work Outlook and personal Gmail inboxes, or log manually
 - **Texts** — Track text message conversations
 - **Calls** — Log phone calls with duration and notes
 - **Voicemails** — Record voicemails with transcripts and listened/unlistened status
@@ -78,7 +78,35 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173, go to **Integrations**, and sync from Harvest and Grasshopper.
+Open http://localhost:5173, go to **Integrations**, and sync from Harvest, Outlook, Gmail, and Grasshopper.
+
+## Email setup (Outlook + Gmail)
+
+| Account | Provider | IMAP host | Env prefix |
+|---------|----------|-----------|------------|
+| Company (work) | Outlook / Microsoft 365 | `outlook.office365.com` | `WORK_EMAIL_IMAP_*` |
+| Personal | Gmail | `imap.gmail.com` | `PERSONAL_EMAIL_IMAP_*` |
+
+Both require an **app password** if you use MFA:
+
+- **Outlook:** Microsoft account → Security → App passwords (or create via Microsoft 365 admin)
+- **Gmail:** Google Account → Security → 2-Step Verification → App passwords. Also enable IMAP under Gmail settings.
+
+```env
+# Work — company Outlook
+WORK_EMAIL_IMAP_HOST=outlook.office365.com
+WORK_EMAIL_IMAP_USER=you@yourcompany.com
+WORK_EMAIL_IMAP_PASSWORD=your_app_password
+
+# Personal — Gmail
+PERSONAL_EMAIL_IMAP_HOST=imap.gmail.com
+PERSONAL_EMAIL_IMAP_USER=you@gmail.com
+PERSONAL_EMAIL_IMAP_PASSWORD=your_app_password
+```
+
+Go to **Integrations** → **Sync All Email**. Work emails show an **Outlook** badge; personal show **Gmail**.
+
+Grasshopper voicemails use your **work Outlook inbox** automatically — point Grasshopper notifications at your company address.
 
 ## Harvest sync
 
@@ -138,9 +166,9 @@ Future enhancements you may want to add:
 
 - [x] Harvest project sync
 - [x] Grasshopper voicemail sync (IMAP + webhook)
+- [x] Outlook work + Gmail personal email sync
 - [x] AI secretary assistant
 - [ ] Link communications to projects from the UI
-- [ ] Gmail / IMAP email sync (non-Grasshopper)
 - [ ] Calendar and task planning
 - [ ] Search across all communications
 - [ ] Desktop app (Electron or Tauri)
@@ -152,6 +180,7 @@ Future enhancements you may want to add:
 |-------------|------------------------------------|
 | Harvest     | `GET /api/harvest/status`, `POST /api/harvest/sync` |
 | Grasshopper | `GET /api/grasshopper/status`, `POST /api/grasshopper/sync`, `POST /api/grasshopper/webhook` |
+| Mailboxes   | `GET /api/mailboxes/status`, `POST /api/mailboxes/sync` |
 | Assistant   | `GET /api/assistant/status`, `POST /api/assistant/chat`, `POST /api/assistant/briefing` |
 | Projects    | `GET/POST /api/projects`           |
 | Emails      | `GET/POST /api/emails`             |

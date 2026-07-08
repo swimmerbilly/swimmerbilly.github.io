@@ -10,6 +10,8 @@ import type {
   GrasshopperSyncResult,
   HarvestStatus,
   HarvestSyncResult,
+  MailboxStatus,
+  MailboxSyncResult,
   Project,
   TextMessage,
   Voicemail,
@@ -64,6 +66,12 @@ export const api = {
       method: "POST",
     }),
 
+  getMailboxStatus: () => request<MailboxStatus[]>("/mailboxes/status"),
+  syncMailboxes: (account?: "work" | "personal") => {
+    const query = account ? `?account=${account}` : "";
+    return request<MailboxSyncResult>(`/mailboxes/sync${query}`, { method: "POST" });
+  },
+
   getAssistantStatus: () => request<AssistantStatus>("/assistant/status"),
   getAssistantConversations: () => request<AssistantConversation[]>("/assistant/conversations"),
   createAssistantConversation: () =>
@@ -83,7 +91,7 @@ export const api = {
   },
 
   getEmails: () => request<Email[]>("/emails"),
-  createEmail: (data: Omit<Email, "id" | "created_at" | "received_at">) =>
+  createEmail: (data: Omit<Email, "id" | "created_at" | "received_at" | "account_label" | "external_message_id">) =>
     request<Email>("/emails", { method: "POST", body: JSON.stringify(data) }),
   updateEmail: (id: number, data: Partial<Pick<Email, "is_read" | "is_starred" | "project_id">>) =>
     request<Email>(`/emails/${id}`, { method: "PATCH", body: JSON.stringify(data) }),

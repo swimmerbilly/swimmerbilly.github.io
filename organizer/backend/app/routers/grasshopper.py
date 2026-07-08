@@ -3,7 +3,7 @@ import asyncio
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.config import settings
+from app.services.mailbox_config import get_grasshopper_mailbox
 from app.database import get_db
 from app.schemas import GrasshopperStatus, GrasshopperSyncResult, GrasshopperWebhookEvent
 from app.services.grasshopper_imap import GrasshopperError
@@ -14,14 +14,17 @@ router = APIRouter(prefix="/grasshopper", tags=["grasshopper"])
 
 @router.get("/status", response_model=GrasshopperStatus)
 def grasshopper_status() -> GrasshopperStatus:
+    mailbox = get_grasshopper_mailbox()
+    imap_configured = mailbox is not None
     return GrasshopperStatus(
-        configured=settings.grasshopper_configured,
-        imap_configured=settings.grasshopper_imap_configured,
+        configured=imap_configured or settings.grasshopper_webhook_configured,
+        imap_configured=imap_configured,
         webhook_configured=settings.grasshopper_webhook_configured,
-        imap_host=settings.grasshopper_imap_host,
-        imap_user=settings.grasshopper_imap_user,
-        imap_folder=settings.grasshopper_imap_folder,
+        imap_host=mailbox.host if mailbox else settings.grasshopper_imap_host,
+        imap_user=mailbox.user if mailbox else settings.grasshopper_imap_user,
+        imap_folder=mailbox.folder if mailbox else settings.grasshopper_imap_folder,
         webhook_url_hint="/api/grasshopper/webhook" if settings.grasshopper_webhook_configured else None,
+        uses_work_outlook=imap_configured and not settings.grasshopper_imap_configured,
     )
 
 

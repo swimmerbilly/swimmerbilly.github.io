@@ -58,6 +58,8 @@ class Email(Base):
     body: Mapped[str] = mapped_column(Text, default="")
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
     is_starred: Mapped[bool] = mapped_column(Boolean, default=False)
+    account_label: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    external_message_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     received_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

@@ -20,6 +20,18 @@ class Settings(BaseSettings):
     grasshopper_webhook_secret: str | None = None
     grasshopper_upload_dir: str = "uploads/grasshopper"
 
+    work_email_imap_host: str | None = None
+    work_email_imap_port: int = 993
+    work_email_imap_user: str | None = None
+    work_email_imap_password: str | None = None
+    work_email_imap_folder: str = "INBOX"
+
+    personal_email_imap_host: str | None = None
+    personal_email_imap_port: int = 993
+    personal_email_imap_user: str | None = None
+    personal_email_imap_password: str | None = None
+    personal_email_imap_folder: str = "INBOX"
+
     openai_api_key: str | None = None
     openai_base_url: str = "https://api.openai.com/v1"
     assistant_model: str = "gpt-4o-mini"
@@ -38,7 +50,27 @@ class Settings(BaseSettings):
             self.grasshopper_imap_host
             and self.grasshopper_imap_user
             and self.grasshopper_imap_password
+        ) or self.work_email_configured
+
+    @property
+    def work_email_configured(self) -> bool:
+        return bool(
+            self.work_email_imap_host
+            and self.work_email_imap_user
+            and self.work_email_imap_password
         )
+
+    @property
+    def personal_email_configured(self) -> bool:
+        return bool(
+            self.personal_email_imap_host
+            and self.personal_email_imap_user
+            and self.personal_email_imap_password
+        )
+
+    @property
+    def email_sync_configured(self) -> bool:
+        return self.work_email_configured or self.personal_email_configured
 
     @property
     def grasshopper_webhook_configured(self) -> bool:

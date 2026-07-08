@@ -36,6 +36,30 @@ export interface GrasshopperStatus {
   imap_user: string | null;
   imap_folder: string | null;
   webhook_url_hint: string | null;
+  uses_work_outlook?: boolean;
+}
+
+export interface MailboxStatus {
+  label: string;
+  provider: string;
+  configured: boolean;
+  host: string | null;
+  user: string | null;
+  folder: string | null;
+}
+
+export interface MailboxAccountSyncResult {
+  account: string;
+  messages_scanned: number;
+  created: number;
+  skipped: number;
+}
+
+export interface MailboxSyncResult {
+  accounts_synced: number;
+  results: MailboxAccountSyncResult[];
+  created: number;
+  skipped: number;
 }
 
 export interface GrasshopperSyncResult {
@@ -57,6 +81,8 @@ export interface Email {
   body: string;
   is_read: boolean;
   is_starred: boolean;
+  account_label: string | null;
+  external_message_id: string | null;
   received_at: string;
   created_at: string;
 }

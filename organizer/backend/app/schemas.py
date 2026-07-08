@@ -57,6 +57,7 @@ class GrasshopperStatus(BaseModel):
     imap_user: str | None = None
     imap_folder: str | None = None
     webhook_url_hint: str | None = None
+    uses_work_outlook: bool = False
 
 
 class GrasshopperSyncResult(BaseModel):
@@ -77,6 +78,29 @@ class GrasshopperWebhookEvent(BaseModel):
     duration_seconds: int | None = None
     received_at: datetime | None = None
     message_id: str | None = None
+
+
+class MailboxStatus(BaseModel):
+    label: str
+    provider: str
+    configured: bool
+    host: str | None = None
+    user: str | None = None
+    folder: str | None = None
+
+
+class MailboxAccountSyncResult(BaseModel):
+    account: str
+    messages_scanned: int
+    created: int
+    skipped: int
+
+
+class MailboxSyncResult(BaseModel):
+    accounts_synced: int
+    results: list[MailboxAccountSyncResult]
+    created: int
+    skipped: int
 
 
 class EmailBase(BaseModel):
@@ -105,6 +129,8 @@ class EmailRead(EmailBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    account_label: str | None = None
+    external_message_id: str | None = None
     received_at: datetime
     created_at: datetime
 

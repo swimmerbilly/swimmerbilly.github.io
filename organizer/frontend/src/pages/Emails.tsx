@@ -47,7 +47,10 @@ export default function EmailsPage() {
 
   return (
     <>
-      <PageHeader title="Emails" description="Track and organize your email communications." />
+      <PageHeader
+        title="Emails"
+        description="Work Outlook and personal Gmail sync from Integrations. Manual entries are also supported."
+      />
 
       <div className="toolbar">
         <span>{emails?.length ?? 0} emails</span>
@@ -79,7 +82,11 @@ export default function EmailsPage() {
             style={{ cursor: "pointer" }}
           >
             <div>
-              <div className="title">{email.subject || "(no subject)"}</div>
+              <div className="title">
+                {email.subject || "(no subject)"}
+                {email.account_label === "work" && <span className="badge badge-work">Outlook</span>}
+                {email.account_label === "personal" && <span className="badge badge-personal">Gmail</span>}
+              </div>
               <div className="meta">
                 {email.direction === "inbound" ? "From" : "To"}:{" "}
                 {email.direction === "inbound" ? email.from_address : email.to_address}
