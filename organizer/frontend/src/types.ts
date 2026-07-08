@@ -1,5 +1,6 @@
 export type ProjectStatus = "active" | "on_hold" | "completed" | "archived";
 export type CommunicationDirection = "inbound" | "outbound";
+export type CallerRole = "architect" | "contractor" | "client" | "vendor" | "other";
 
 export interface Project {
   id: number;
@@ -103,8 +104,10 @@ export interface TextMessage {
 export interface Call {
   id: number;
   project_id: number | null;
+  project_name: string | null;
   direction: CommunicationDirection;
   contact_name: string | null;
+  caller_role: CallerRole | null;
   phone_number: string;
   duration_seconds: number | null;
   notes: string | null;

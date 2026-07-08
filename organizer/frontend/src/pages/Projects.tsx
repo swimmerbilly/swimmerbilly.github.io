@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../api/client";
+import { useCallNotepad } from "../components/NotepadProvider";
 import {
   EmptyState,
   FormField,
@@ -13,6 +15,7 @@ import type { HarvestSyncResult, Project, ProjectStatus } from "../types";
 const STATUS_OPTIONS: ProjectStatus[] = ["active", "on_hold", "completed", "archived"];
 
 export default function ProjectsPage() {
+  const { openNotepad } = useCallNotepad();
   const { data: projects, error, loading, reload } = useAsyncData(() => api.getProjects());
   const {
     data: harvestStatus,
@@ -88,6 +91,14 @@ export default function ProjectsPage() {
               {project.status.replace("_", " ")}
             </span>
             {project.harvest_code && <span className="badge badge-code">{project.harvest_code}</span>}
+          </div>
+          <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+            <button className="btn btn-ghost" onClick={() => openNotepad(project.id)}>
+              Take call notes
+            </button>
+            <Link className="btn btn-ghost" to={`/calls?project=${project.id}`}>
+              View call notes
+            </Link>
           </div>
         </div>
       </div>

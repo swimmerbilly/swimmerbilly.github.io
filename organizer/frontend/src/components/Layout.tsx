@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { NotepadProvider } from "./NotepadProvider";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: "◉" },
@@ -13,29 +14,31 @@ const navItems = [
 
 export default function Layout() {
   return (
-    <div className="app-layout">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-icon">LO</div>
-          <h1>Life Organizer</h1>
-        </div>
-        <nav className="nav">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === "/"}
-              className={({ isActive }) => (isActive ? "active" : undefined)}
-            >
-              <span>{item.icon}</span>
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-      </aside>
-      <main className="main-content">
-        <Outlet />
-      </main>
-    </div>
+    <NotepadProvider>
+      <div className="app-layout">
+        <aside className="sidebar">
+          <div className="brand">
+            <div className="brand-icon">LO</div>
+            <h1>Life Organizer</h1>
+          </div>
+          <nav className="nav">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === "/"}
+                className={({ isActive }) => (isActive ? "active" : undefined)}
+              >
+                <span>{item.icon}</span>
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </aside>
+        <main className="main-content">
+          <Outlet />
+        </main>
+      </div>
+    </NotepadProvider>
   );
 }

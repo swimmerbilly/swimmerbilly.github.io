@@ -61,6 +61,7 @@ def _migrate_grasshopper_columns() -> None:
             "grasshopper_message_id": "ALTER TABLE text_messages ADD COLUMN grasshopper_message_id VARCHAR(255)",
         },
         "calls": {
+            "caller_role": "ALTER TABLE calls ADD COLUMN caller_role VARCHAR(20)",
             "grasshopper_message_id": "ALTER TABLE calls ADD COLUMN grasshopper_message_id VARCHAR(255)",
         },
         "voicemails": {

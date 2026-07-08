@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models import Call, Email, Project, ProjectStatus, TextMessage, Voicemail
 
@@ -72,13 +72,20 @@ def build_workspace_context(db: Session) -> str:
         lines.append("- None")
 
     recent_calls = (
-        db.query(Call).filter(Call.called_at >= week_ago).order_by(Call.called_at.desc()).limit(10).all()
+        db.query(Call)
+        .options(joinedload(Call.project))
+        .filter(Call.called_at >= week_ago)
+        .order_by(Call.called_at.desc())
+        .limit(10)
+        .all()
     )
     lines.extend(["", f"## Calls this week ({len(recent_calls)} recent)"])
     for call in recent_calls:
         who = call.contact_name or call.phone_number
-        notes = (call.notes or "")[:80]
-        lines.append(f"- [{call.id}] {call.direction.value} call with {who}{': ' + notes if notes else ''}")
+        role = f" ({call.caller_role})" if call.caller_role else ""
+        project = f" · project: {call.project.name}" if call.project else ""
+        notes = (call.notes or "")[:120]
+        lines.append(f"- [{call.id}] {who}{role}{project}: {notes or '(no notes)'}")
     if not recent_calls:
         lines.append("- None")
 

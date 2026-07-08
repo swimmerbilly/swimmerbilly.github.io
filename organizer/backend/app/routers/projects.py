@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
-from app.models import Project
-from app.schemas import ProjectCreate, ProjectRead, ProjectUpdate
+from app.models import Call, Project
+from app.schemas import CallRead, ProjectCreate, ProjectRead, ProjectUpdate
+from app.services.call_serializer import to_call_read
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -28,6 +29,21 @@ def get_project(project_id: int, db: Session = Depends(get_db)) -> Project:
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
+
+
+@router.get("/{project_id}/calls", response_model=list[CallRead])
+def get_project_calls(project_id: int, db: Session = Depends(get_db)) -> list[CallRead]:
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    calls = (
+        db.query(Call)
+        .options(joinedload(Call.project))
+        .filter(Call.project_id == project_id)
+        .order_by(Call.called_at.desc())
+        .all()
+    )
+    return [to_call_read(call) for call in calls]
 
 
 @router.patch("/{project_id}", response_model=ProjectRead)

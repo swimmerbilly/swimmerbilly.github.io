@@ -4,6 +4,7 @@ import type {
   AssistantMessage,
   AssistantStatus,
   Call,
+  CallerRole,
   DashboardStats,
   Email,
   GrasshopperStatus,
@@ -102,9 +103,22 @@ export const api = {
   updateText: (id: number, data: Partial<Pick<TextMessage, "is_read" | "project_id">>) =>
     request<TextMessage>(`/texts/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
 
-  getCalls: () => request<Call[]>("/calls"),
-  createCall: (data: Omit<Call, "id" | "created_at" | "called_at" | "grasshopper_message_id">) =>
+  getCalls: (projectId?: number) =>
+    request<Call[]>(projectId ? `/calls?project_id=${projectId}` : "/calls"),
+  createQuickCallNote: (data: {
+    project_id: number;
+    contact_name: string;
+    caller_role?: CallerRole | null;
+    notes: string;
+    phone_number?: string | null;
+  }) => request<Call>("/calls/quick-note", { method: "POST", body: JSON.stringify(data) }),
+  createCall: (data: Omit<Call, "id" | "created_at" | "called_at" | "grasshopper_message_id" | "project_name">) =>
     request<Call>("/calls", { method: "POST", body: JSON.stringify(data) }),
+  updateCall: (
+    id: number,
+    data: Partial<Pick<Call, "project_id" | "notes" | "caller_role">>
+  ) => request<Call>(`/calls/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  getProjectCalls: (projectId: number) => request<Call[]>(`/projects/${projectId}/calls`),
 
   getVoicemails: () => request<Voicemail[]>("/voicemails"),
   createVoicemail: (data: Omit<Voicemail, "id" | "created_at" | "received_at" | "grasshopper_message_id">) =>

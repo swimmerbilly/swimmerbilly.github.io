@@ -19,6 +19,14 @@ class CommunicationDirection(str, enum.Enum):
     OUTBOUND = "outbound"
 
 
+class CallerRole(str, enum.Enum):
+    ARCHITECT = "architect"
+    CONTRACTOR = "contractor"
+    CLIENT = "client"
+    VENDOR = "vendor"
+    OTHER = "other"
+
+
 class Project(Base):
     __tablename__ = "projects"
 
@@ -94,6 +102,7 @@ class Call(Base):
         Enum(CommunicationDirection), default=CommunicationDirection.INBOUND
     )
     contact_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    caller_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
     phone_number: Mapped[str] = mapped_column(String(30), nullable=False)
     duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)

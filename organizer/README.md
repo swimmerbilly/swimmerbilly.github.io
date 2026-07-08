@@ -9,7 +9,7 @@ This is a **standalone application** living in the `organizer/` directory, separ
 - **Projects** — Sync from Harvest (your source of truth) or add local-only projects
 - **Emails** — Sync work Outlook and personal Gmail inboxes, or log manually
 - **Texts** — Track text message conversations
-- **Calls** — Log phone calls with duration and notes
+- **Calls** — Quick call notepad for architects/contractors, filed to the right Harvest project
 - **Voicemails** — Record voicemails with transcripts and listened/unlistened status
 - **Dashboard** — Unified overview of active projects and unread communications
 - **AI Secretary** — Smart assistant that summarizes, prioritizes, and drafts replies using your live data
@@ -168,7 +168,8 @@ Future enhancements you may want to add:
 - [x] Grasshopper voicemail sync (IMAP + webhook)
 - [x] Outlook work + Gmail personal email sync
 - [x] AI secretary assistant
-- [ ] Link communications to projects from the UI
+- [x] Quick call notepad linked to projects
+- [ ] Link emails/texts/voicemails to projects from the UI
 - [ ] Calendar and task planning
 - [ ] Search across all communications
 - [ ] Desktop app (Electron or Tauri)
