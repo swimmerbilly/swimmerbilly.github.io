@@ -1,0 +1,184 @@
+import type {
+  AssistantAction,
+  AssistantChatResponse,
+  AssistantConversation,
+  AssistantMessage,
+  AssistantStatus,
+  AttentionItem,
+  Call,
+  CallerRole,
+  ChecklistItem,
+  DashboardStats,
+  DayPlan,
+  Email,
+  GrasshopperStatus,
+  GrasshopperSyncResult,
+  HarvestStatus,
+  HarvestSyncResult,
+  MailboxStatus,
+  MailboxSyncResult,
+  Project,
+  ProjectContact,
+  ProjectSuggestion,
+  TextMessage,
+  TimelineEntry,
+  Voicemail,
+} from "../types";
+
+const API_BASE = "/api";
+
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    ...options,
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    try {
+      const parsed = JSON.parse(message) as { detail?: string | { msg?: string }[] };
+      if (typeof parsed.detail === "string") {
+        throw new Error(parsed.detail);
+      }
+    } catch (parseError) {
+      if (parseError instanceof Error && !message.startsWith("{")) {
+        throw parseError;
+      }
+    }
+    throw new Error(message || `Request failed: ${response.status}`);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return response.json() as Promise<T>;
+}
+
+export const api = {
+  getStats: () => request<DashboardStats>("/dashboard/stats"),
+
+  getDayPlan: () => request<DayPlan | null>("/day-start"),
+  generateDayPlan: (regenerate = false) =>
+    request<DayPlan>(`/day-start/generate?regenerate=${regenerate}`, { method: "POST" }),
+  addChecklistItem: (text: string) =>
+    request<ChecklistItem>("/day-start/checklist", {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    }),
+  updateChecklistItem: (id: number, data: { is_completed: boolean }) =>
+    request<ChecklistItem>(`/day-start/checklist/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  generateWrapUp: () => request<DayPlan>("/day-start/wrap-up", { method: "POST" }),
+  generateWeeklyReview: () => request<DayPlan>("/day-start/weekly-review", { method: "POST" }),
+
+  getAttentionQueue: () => request<AttentionItem[]>("/attention"),
+
+  getProjects: () => request<Project[]>("/projects"),
+  getProject: (id: number) => request<Project>(`/projects/${id}`),
+  getProjectTimeline: (id: number) => request<TimelineEntry[]>(`/projects/${id}/timeline`),
+  getProjectContacts: (id: number) => request<ProjectContact[]>(`/projects/${id}/contacts`),
+  createProject: (data: Pick<Project, "name" | "description" | "status" | "color">) =>
+    request<Project>("/projects", { method: "POST", body: JSON.stringify(data) }),
+  deleteProject: (id: number) =>
+    request<void>(`/projects/${id}`, { method: "DELETE" }),
+
+  getHarvestStatus: () => request<HarvestStatus>("/harvest/status"),
+  syncHarvestProjects: () =>
+    request<HarvestSyncResult>("/harvest/sync", { method: "POST" }),
+
+  getGrasshopperStatus: () => request<GrasshopperStatus>("/grasshopper/status"),
+  syncGrasshopper: (sinceDays = 30) =>
+    request<GrasshopperSyncResult>(`/grasshopper/sync?since_days=${sinceDays}`, {
+      method: "POST",
+    }),
+
+  getMailboxStatus: () => request<MailboxStatus[]>("/mailboxes/status"),
+  syncMailboxes: (account?: "work" | "personal") => {
+    const query = account ? `?account=${account}` : "";
+    return request<MailboxSyncResult>(`/mailboxes/sync${query}`, { method: "POST" });
+  },
+
+  getAssistantStatus: () => request<AssistantStatus>("/assistant/status"),
+  getAssistantConversations: () => request<AssistantConversation[]>("/assistant/conversations"),
+  createAssistantConversation: () =>
+    request<AssistantConversation>("/assistant/conversations", { method: "POST" }),
+  getAssistantMessages: (conversationId: number) =>
+    request<AssistantMessage[]>(`/assistant/conversations/${conversationId}/messages`),
+  deleteAssistantConversation: (conversationId: number) =>
+    request<void>(`/assistant/conversations/${conversationId}`, { method: "DELETE" }),
+  chatWithAssistant: (
+    message: string,
+    conversationId?: number,
+    context?: { type: string; email_id?: number }
+  ) =>
+    request<AssistantChatResponse>("/assistant/chat", {
+      method: "POST",
+      body: JSON.stringify({
+        message,
+        conversation_id: conversationId ?? null,
+        context: context ?? null,
+      }),
+    }),
+  executeAssistantAction: (action: AssistantAction) =>
+    request<{ success: boolean; message: string }>("/assistant/actions/execute", {
+      method: "POST",
+      body: JSON.stringify(action),
+    }),
+  getAssistantBriefing: (conversationId?: number) => {
+    const query = conversationId ? `?conversation_id=${conversationId}` : "";
+    return request<AssistantChatResponse>(`/assistant/briefing${query}`, { method: "POST" });
+  },
+
+  getEmails: () => request<Email[]>("/emails"),
+  createEmail: (data: Omit<Email, "id" | "created_at" | "received_at" | "account_label" | "external_message_id">) =>
+    request<Email>("/emails", { method: "POST", body: JSON.stringify(data) }),
+  updateEmail: (id: number, data: Partial<Pick<Email, "is_read" | "is_starred" | "project_id">>) =>
+    request<Email>(`/emails/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+
+  getTexts: () => request<TextMessage[]>("/texts"),
+  createText: (data: Omit<TextMessage, "id" | "created_at" | "sent_at" | "grasshopper_message_id">) =>
+    request<TextMessage>("/texts", { method: "POST", body: JSON.stringify(data) }),
+  updateText: (id: number, data: Partial<Pick<TextMessage, "is_read" | "project_id">>) =>
+    request<TextMessage>(`/texts/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+
+  getCalls: (projectId?: number) =>
+    request<Call[]>(projectId ? `/calls?project_id=${projectId}` : "/calls"),
+  getLinkSuggestion: (commType: string, commId: number) =>
+    request<ProjectSuggestion[]>(`/linking/suggest?comm_type=${commType}&comm_id=${commId}`),
+  linkCommToProject: (commType: string, commId: number, projectId: number) =>
+    request<{ success: boolean }>("/linking/apply", {
+      method: "POST",
+      body: JSON.stringify({ comm_type: commType, comm_id: commId, project_id: projectId }),
+    }),
+
+  createQuickCallNote: (data: {
+    project_id: number;
+    contact_name: string;
+    caller_role?: CallerRole | null;
+    notes: string;
+    phone_number?: string | null;
+    follow_up_days?: number | null;
+  }) => request<Call>("/calls/quick-note", { method: "POST", body: JSON.stringify(data) }),
+  createCall: (data: Omit<Call, "id" | "created_at" | "called_at" | "grasshopper_message_id" | "project_name">) =>
+    request<Call>("/calls", { method: "POST", body: JSON.stringify(data) }),
+  updateCall: (
+    id: number,
+    data: Partial<Pick<Call, "project_id" | "notes" | "caller_role" | "follow_up_completed">>
+  ) => request<Call>(`/calls/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  getProjectCalls: (projectId: number) => request<Call[]>(`/projects/${projectId}/calls`),
+
+  getVoicemails: () => request<Voicemail[]>("/voicemails"),
+  createVoicemail: (data: Omit<Voicemail, "id" | "created_at" | "received_at" | "grasshopper_message_id">) =>
+    request<Voicemail>("/voicemails", { method: "POST", body: JSON.stringify(data) }),
+  updateVoicemail: (
+    id: number,
+    data: Partial<Pick<Voicemail, "is_listened" | "project_id" | "transcript">>
+  ) =>
+    request<Voicemail>(`/voicemails/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+};
