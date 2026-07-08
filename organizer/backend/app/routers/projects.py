@@ -51,5 +51,10 @@ def delete_project(project_id: int, db: Session = Depends(get_db)) -> None:
     project = db.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+    if project.harvest_id is not None:
+        raise HTTPException(
+            status_code=400,
+            detail="Harvest-synced projects cannot be deleted locally. Archive them in Harvest instead.",
+        )
     db.delete(project)
     db.commit()

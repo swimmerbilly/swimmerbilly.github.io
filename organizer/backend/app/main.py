@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import init_db
-from app.routers import calls, dashboard, emails, projects, texts, voicemails
+from app.routers import calls, dashboard, emails, harvest, projects, texts, voicemails
 
 
 @asynccontextmanager
@@ -25,6 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(projects.router, prefix="/api")
+app.include_router(harvest.router, prefix="/api")
 app.include_router(emails.router, prefix="/api")
 app.include_router(texts.router, prefix="/api")
 app.include_router(calls.router, prefix="/api")

@@ -27,8 +27,25 @@ class ProjectRead(ProjectBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    harvest_id: int | None = None
+    harvest_client_name: str | None = None
+    harvest_code: str | None = None
+    harvest_synced_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class HarvestStatus(BaseModel):
+    configured: bool
+    account_id: str | None = None
+    user_name: str | None = None
+
+
+class HarvestSyncResult(BaseModel):
+    synced: int
+    created: int
+    updated: int
+    archived: int
 
 
 class EmailBase(BaseModel):

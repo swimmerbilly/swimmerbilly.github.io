@@ -3,12 +3,29 @@ export type CommunicationDirection = "inbound" | "outbound";
 
 export interface Project {
   id: number;
+  harvest_id: number | null;
   name: string;
   description: string | null;
   status: ProjectStatus;
   color: string;
+  harvest_client_name: string | null;
+  harvest_code: string | null;
+  harvest_synced_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface HarvestStatus {
+  configured: boolean;
+  account_id: string | null;
+  user_name: string | null;
+}
+
+export interface HarvestSyncResult {
+  synced: number;
+  created: number;
+  updated: number;
+  archived: number;
 }
 
 export interface Email {

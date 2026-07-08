@@ -2,6 +2,8 @@ import type {
   Call,
   DashboardStats,
   Email,
+  HarvestStatus,
+  HarvestSyncResult,
   Project,
   TextMessage,
   Voicemail,
@@ -35,6 +37,10 @@ export const api = {
     request<Project>("/projects", { method: "POST", body: JSON.stringify(data) }),
   deleteProject: (id: number) =>
     request<void>(`/projects/${id}`, { method: "DELETE" }),
+
+  getHarvestStatus: () => request<HarvestStatus>("/harvest/status"),
+  syncHarvestProjects: () =>
+    request<HarvestSyncResult>("/harvest/sync", { method: "POST" }),
 
   getEmails: () => request<Email[]>("/emails"),
   createEmail: (data: Omit<Email, "id" | "created_at" | "received_at">) =>

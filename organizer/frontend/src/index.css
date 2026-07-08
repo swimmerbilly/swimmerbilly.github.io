@@ -290,6 +290,63 @@ select:focus {
   color: var(--text-muted);
 }
 
+.badge-harvest {
+  background: rgba(249, 115, 22, 0.15);
+  color: #fb923c;
+  margin-left: 0.5rem;
+}
+
+.badge-code {
+  background: rgba(139, 156, 179, 0.1);
+  color: var(--text-muted);
+}
+
+.harvest-card {
+  margin-bottom: 1.5rem;
+}
+
+.harvest-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.harvest-card h3 {
+  margin-bottom: 0.35rem;
+}
+
+.sync-result {
+  margin-top: 1rem;
+  color: var(--success);
+  font-size: 0.9rem;
+}
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 1.5rem 0 0.75rem;
+}
+
+code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+  background: var(--bg);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.list-item .title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
