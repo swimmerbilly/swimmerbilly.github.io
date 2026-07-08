@@ -1,0 +1,73 @@
+export type ProjectStatus = "active" | "on_hold" | "completed" | "archived";
+export type CommunicationDirection = "inbound" | "outbound";
+
+export interface Project {
+  id: number;
+  name: string;
+  description: string | null;
+  status: ProjectStatus;
+  color: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Email {
+  id: number;
+  project_id: number | null;
+  direction: CommunicationDirection;
+  from_address: string;
+  to_address: string;
+  subject: string;
+  body: string;
+  is_read: boolean;
+  is_starred: boolean;
+  received_at: string;
+  created_at: string;
+}
+
+export interface TextMessage {
+  id: number;
+  project_id: number | null;
+  direction: CommunicationDirection;
+  contact_name: string | null;
+  phone_number: string;
+  body: string;
+  is_read: boolean;
+  sent_at: string;
+  created_at: string;
+}
+
+export interface Call {
+  id: number;
+  project_id: number | null;
+  direction: CommunicationDirection;
+  contact_name: string | null;
+  phone_number: string;
+  duration_seconds: number | null;
+  notes: string | null;
+  called_at: string;
+  created_at: string;
+}
+
+export interface Voicemail {
+  id: number;
+  project_id: number | null;
+  contact_name: string | null;
+  phone_number: string;
+  transcript: string | null;
+  audio_path: string | null;
+  duration_seconds: number | null;
+  is_listened: boolean;
+  received_at: string;
+  created_at: string;
+}
+
+export interface DashboardStats {
+  project_count: number;
+  active_projects: number;
+  unread_emails: number;
+  unread_texts: number;
+  unlistened_voicemails: number;
+  recent_calls: number;
+  total_communications: number;
+}
