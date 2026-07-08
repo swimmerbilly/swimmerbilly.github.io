@@ -110,3 +110,30 @@ export interface DashboardStats {
   recent_calls: number;
   total_communications: number;
 }
+
+export interface AssistantStatus {
+  configured: boolean;
+  model: string;
+  name: string;
+}
+
+export interface AssistantConversation {
+  id: number;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AssistantMessage {
+  id: number;
+  conversation_id: number;
+  role: "user" | "assistant" | string;
+  content: string;
+  created_at: string;
+}
+
+export interface AssistantChatResponse {
+  conversation: AssistantConversation;
+  user_message: AssistantMessage;
+  assistant_message: AssistantMessage;
+}

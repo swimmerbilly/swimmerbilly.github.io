@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import init_db
-from app.routers import calls, dashboard, emails, grasshopper, harvest, projects, texts, voicemails
+from app.routers import assistant, calls, dashboard, emails, grasshopper, harvest, projects, texts, voicemails
 
 
 @asynccontextmanager
@@ -34,6 +34,7 @@ app.include_router(texts.router, prefix="/api")
 app.include_router(calls.router, prefix="/api")
 app.include_router(voicemails.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
+app.include_router(assistant.router, prefix="/api")
 
 uploads_dir = Path(__file__).resolve().parent.parent / settings.grasshopper_upload_dir
 uploads_dir.mkdir(parents=True, exist_ok=True)

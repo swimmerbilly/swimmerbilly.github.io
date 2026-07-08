@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
+import AssistantPage from "./pages/Assistant";
 import CallsPage from "./pages/Calls";
 import DashboardPage from "./pages/Dashboard";
 import EmailsPage from "./pages/Emails";
@@ -15,6 +16,7 @@ export default function App() {
         <Route index element={<DashboardPage />} />
         <Route path="projects" element={<ProjectsPage />} />
         <Route path="integrations" element={<IntegrationsPage />} />
+        <Route path="assistant" element={<AssistantPage />} />
         <Route path="emails" element={<EmailsPage />} />
         <Route path="texts" element={<TextsPage />} />
         <Route path="calls" element={<CallsPage />} />

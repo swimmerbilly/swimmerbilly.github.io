@@ -12,6 +12,7 @@ This is a **standalone application** living in the `organizer/` directory, separ
 - **Calls** — Log phone calls with duration and notes
 - **Voicemails** — Record voicemails with transcripts and listened/unlistened status
 - **Dashboard** — Unified overview of active projects and unread communications
+- **AI Secretary** — Smart assistant that summarizes, prioritizes, and drafts replies using your live data
 
 ## Architecture
 
@@ -112,12 +113,32 @@ GRASSHOPPER_WEBHOOK_SECRET=optional_secret_for_custom_automations
 
 Imported voicemails include transcripts and audio attachments. Duplicate emails are skipped automatically.
 
+## AI Secretary (Alex)
+
+The built-in AI assistant acts like a smart secretary. It reads a live snapshot of your projects and communications to:
+
+- Give morning briefings and daily priorities
+- Summarize unread emails, texts, and voicemails
+- Draft follow-up emails and text replies
+- Suggest which Harvest project to focus on
+
+Add to `organizer/backend/.env`:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+ASSISTANT_MODEL=gpt-4o-mini
+ASSISTANT_NAME=Alex
+```
+
+Works with any OpenAI-compatible API (`OPENAI_BASE_URL`). Open the **Assistant** page to chat.
+
 ## Roadmap
 
 Future enhancements you may want to add:
 
 - [x] Harvest project sync
 - [x] Grasshopper voicemail sync (IMAP + webhook)
+- [x] AI secretary assistant
 - [ ] Link communications to projects from the UI
 - [ ] Gmail / IMAP email sync (non-Grasshopper)
 - [ ] Calendar and task planning
@@ -131,6 +152,7 @@ Future enhancements you may want to add:
 |-------------|------------------------------------|
 | Harvest     | `GET /api/harvest/status`, `POST /api/harvest/sync` |
 | Grasshopper | `GET /api/grasshopper/status`, `POST /api/grasshopper/sync`, `POST /api/grasshopper/webhook` |
+| Assistant   | `GET /api/assistant/status`, `POST /api/assistant/chat`, `POST /api/assistant/briefing` |
 | Projects    | `GET/POST /api/projects`           |
 | Emails      | `GET/POST /api/emails`             |
 | Texts       | `GET/POST /api/texts`              |

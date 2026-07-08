@@ -1,4 +1,8 @@
 import type {
+  AssistantChatResponse,
+  AssistantConversation,
+  AssistantMessage,
+  AssistantStatus,
   Call,
   DashboardStats,
   Email,
@@ -21,6 +25,16 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const message = await response.text();
+    try {
+      const parsed = JSON.parse(message) as { detail?: string | { msg?: string }[] };
+      if (typeof parsed.detail === "string") {
+        throw new Error(parsed.detail);
+      }
+    } catch (parseError) {
+      if (parseError instanceof Error && !message.startsWith("{")) {
+        throw parseError;
+      }
+    }
     throw new Error(message || `Request failed: ${response.status}`);
   }
 
@@ -49,6 +63,24 @@ export const api = {
     request<GrasshopperSyncResult>(`/grasshopper/sync?since_days=${sinceDays}`, {
       method: "POST",
     }),
+
+  getAssistantStatus: () => request<AssistantStatus>("/assistant/status"),
+  getAssistantConversations: () => request<AssistantConversation[]>("/assistant/conversations"),
+  createAssistantConversation: () =>
+    request<AssistantConversation>("/assistant/conversations", { method: "POST" }),
+  getAssistantMessages: (conversationId: number) =>
+    request<AssistantMessage[]>(`/assistant/conversations/${conversationId}/messages`),
+  deleteAssistantConversation: (conversationId: number) =>
+    request<void>(`/assistant/conversations/${conversationId}`, { method: "DELETE" }),
+  chatWithAssistant: (message: string, conversationId?: number) =>
+    request<AssistantChatResponse>("/assistant/chat", {
+      method: "POST",
+      body: JSON.stringify({ message, conversation_id: conversationId ?? null }),
+    }),
+  getAssistantBriefing: (conversationId?: number) => {
+    const query = conversationId ? `?conversation_id=${conversationId}` : "";
+    return request<AssistantChatResponse>(`/assistant/briefing${query}`, { method: "POST" });
+  },
 
   getEmails: () => request<Email[]>("/emails"),
   createEmail: (data: Omit<Email, "id" | "created_at" | "received_at">) =>

@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     grasshopper_webhook_secret: str | None = None
     grasshopper_upload_dir: str = "uploads/grasshopper"
 
+    openai_api_key: str | None = None
+    openai_base_url: str = "https://api.openai.com/v1"
+    assistant_model: str = "gpt-4o-mini"
+    assistant_name: str = "Alex"
+
     class Config:
         env_file = ".env"
 
@@ -42,6 +47,10 @@ class Settings(BaseSettings):
     @property
     def grasshopper_configured(self) -> bool:
         return self.grasshopper_imap_configured or self.grasshopper_webhook_configured
+
+    @property
+    def assistant_configured(self) -> bool:
+        return bool(self.openai_api_key)
 
 
 settings = Settings()
