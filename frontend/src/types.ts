@@ -213,6 +213,33 @@ export interface AssistantChatResponse {
   actions: AssistantAction[];
 }
 
+export interface SetupField {
+  key: string;
+  label: string;
+  value: string | null;
+  masked: string | null;
+  has_value: boolean;
+  placeholder: string;
+  secret: boolean;
+}
+
+export interface SetupStep {
+  id: string;
+  title: string;
+  description: string;
+  configured: boolean;
+  fields: SetupField[];
+  help_url?: string | null;
+  help_text?: string | null;
+  optional?: boolean;
+}
+
+export interface SetupStatus {
+  steps: SetupStep[];
+  required_configured: boolean;
+  any_email_configured: boolean;
+}
+
 export interface AttentionItem {
   priority: number;
   type: string;

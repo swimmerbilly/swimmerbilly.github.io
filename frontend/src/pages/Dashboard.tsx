@@ -15,6 +15,7 @@ type DayMode = "morning" | "evening" | "weekly";
 export default function DashboardPage() {
   const { data: stats } = useAsyncData(() => api.getStats());
   const { data: assistantStatus } = useAsyncData(() => api.getAssistantStatus());
+  const { data: setupStatus } = useAsyncData(() => api.getSetupStatus());
   const { data: attention } = useAsyncData(() => api.getAttentionQueue());
   const {
     data: dayPlan,
@@ -102,7 +103,17 @@ export default function DashboardPage() {
     <>
       <PageHeader title="Start My Day" description={todayLabel} />
 
-      {!assistantStatus?.configured && (
+      {!setupStatus?.required_configured && (
+        <div className="card setup-banner">
+          <p>
+            <strong>First step:</strong>{" "}
+            <Link to="/setup">Connect your accounts</Link> (Harvest, Outlook, Alex) so the app can sync
+            your projects and power your daily brief.
+          </p>
+        </div>
+      )}
+
+      {!assistantStatus?.configured && setupStatus?.required_configured && (
         <div className="error-banner">
           Add <code>OPENAI_API_KEY</code> to enable your daily brief and checklist.
         </div>

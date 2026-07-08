@@ -5,6 +5,7 @@ const navItems = [
   { to: "/", label: "Start My Day", icon: "☀" },
   { to: "/projects", label: "Projects", icon: "▣" },
   { to: "/integrations", label: "Integrations", icon: "⚡" },
+  { to: "/setup", label: "Connect", icon: "🔗" },
   { to: "/assistant", label: "Assistant", icon: "✦" },
   { to: "/emails", label: "Emails", icon: "✉" },
   { to: "/texts", label: "Texts", icon: "💬" },

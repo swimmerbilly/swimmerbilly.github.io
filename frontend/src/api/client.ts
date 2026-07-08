@@ -20,6 +20,7 @@ import type {
   Project,
   ProjectContact,
   ProjectSuggestion,
+  SetupStatus,
   TextMessage,
   TimelineEntry,
   Voicemail,
@@ -75,6 +76,13 @@ export const api = {
   generateWeeklyReview: () => request<DayPlan>("/day-start/weekly-review", { method: "POST" }),
 
   getAttentionQueue: () => request<AttentionItem[]>("/attention"),
+
+  getSetupStatus: () => request<SetupStatus>("/setup"),
+  saveSetupStep: (stepId: string, values: Record<string, string>) =>
+    request<SetupStatus>(`/setup/${stepId}`, {
+      method: "PUT",
+      body: JSON.stringify({ values }),
+    }),
 
   getProjects: () => request<Project[]>("/projects"),
   getProject: (id: number) => request<Project>(`/projects/${id}`),

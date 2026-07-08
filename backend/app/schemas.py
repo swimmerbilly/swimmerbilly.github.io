@@ -385,6 +385,37 @@ class AssistantChatResponse(BaseModel):
     actions: list[AssistantAction] = []
 
 
+class SetupField(BaseModel):
+    key: str
+    label: str
+    value: str | None = None
+    masked: str | None = None
+    has_value: bool = False
+    placeholder: str = ""
+    secret: bool = False
+
+
+class SetupStep(BaseModel):
+    id: str
+    title: str
+    description: str
+    configured: bool
+    fields: list[SetupField]
+    help_url: str | None = None
+    help_text: str | None = None
+    optional: bool = False
+
+
+class SetupStatus(BaseModel):
+    steps: list[SetupStep]
+    required_configured: bool
+    any_email_configured: bool
+
+
+class SetupStepSave(BaseModel):
+    values: dict[str, str] = {}
+
+
 class AttentionItem(BaseModel):
     priority: int
     type: str

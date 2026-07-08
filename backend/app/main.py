@@ -6,13 +6,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.database import init_db
-from app.routers import assistant, attention, calls, dashboard, day_start, emails, grasshopper, harvest, linking, mailboxes, projects, texts, voicemails
+from app.database import SessionLocal, init_db
+from app.routers import assistant, attention, calls, dashboard, day_start, emails, grasshopper, harvest, linking, mailboxes, projects, setup, texts, voicemails
+from app.services.settings_store import load_settings_from_db
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()
+    db = SessionLocal()
+    try:
+        load_settings_from_db(db)
+    finally:
+        db.close()
     yield
 
 
@@ -38,6 +44,7 @@ app.include_router(dashboard.router, prefix="/api")
 app.include_router(day_start.router, prefix="/api")
 app.include_router(attention.router, prefix="/api")
 app.include_router(linking.router, prefix="/api")
+app.include_router(setup.router, prefix="/api")
 app.include_router(assistant.router, prefix="/api")
 
 uploads_dir = Path(__file__).resolve().parent.parent / settings.grasshopper_upload_dir

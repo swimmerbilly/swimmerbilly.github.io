@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import { api } from "../api/client";
 import { PageHeader, useAsyncData } from "../components/ui";
@@ -80,8 +81,12 @@ export default function IntegrationsPage() {
     <>
       <PageHeader
         title="Integrations"
-        description="Connect Harvest, Outlook work email, Gmail personal email, and Grasshopper."
+        description="Connect Harvest, Outlook work email, Gmail personal email, and Grasshopper. Enter credentials on the Connect page."
       />
+
+      <p className="meta" style={{ marginBottom: "1rem" }}>
+        Need to add or update credentials? Go to <Link to="/setup">Connect your accounts</Link>.
+      </p>
 
       <div className="card harvest-card">
         <div className="harvest-card-header">
@@ -96,8 +101,7 @@ export default function IntegrationsPage() {
               </p>
             ) : (
               <p className="meta">
-                Add <code>HARVEST_ACCESS_TOKEN</code> and <code>HARVEST_ACCOUNT_ID</code> to{" "}
-                <code>organizer/backend/.env</code>.
+                Not connected. <Link to="/setup">Add Harvest credentials</Link>.
               </p>
             )}
           </div>
@@ -131,14 +135,14 @@ export default function IntegrationsPage() {
                     Work Outlook: {workMailbox.user} @ {workMailbox.host}
                   </p>
                 ) : (
-                  <p className="meta">Work Outlook not configured — add <code>WORK_EMAIL_IMAP_*</code></p>
+                  <p className="meta">Work Outlook not configured — <Link to="/setup">connect work email</Link></p>
                 )}
                 {personalMailbox?.configured ? (
                   <p className="meta">
                     Personal Gmail: {personalMailbox.user} @ {personalMailbox.host}
                   </p>
                 ) : (
-                  <p className="meta">Personal Gmail not configured — add <code>PERSONAL_EMAIL_IMAP_*</code></p>
+                  <p className="meta">Personal Gmail not configured — <Link to="/setup">connect Gmail</Link> (optional)</p>
                 )}
               </>
             )}
@@ -187,8 +191,7 @@ export default function IntegrationsPage() {
               </p>
             ) : (
               <p className="meta">
-                Configure <code>WORK_EMAIL_IMAP_*</code> (Outlook) and forward Grasshopper voicemails to
-                that company address.
+                Connect <Link to="/setup">work Outlook</Link> and forward Grasshopper voicemails to that address.
               </p>
             )}
             {grasshopperStatus?.webhook_configured && (
