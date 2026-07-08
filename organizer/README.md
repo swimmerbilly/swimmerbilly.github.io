@@ -11,7 +11,7 @@ This is a **standalone application** living in the `organizer/` directory, separ
 - **Texts** — Track text message conversations
 - **Calls** — Quick call notepad for architects/contractors, filed to the right Harvest project
 - **Voicemails** — Record voicemails with transcripts and listened/unlistened status
-- **Dashboard** — Unified overview of active projects and unread communications
+- **Start My Day** — AI brief for today, this week, and this month with a daily checklist
 - **AI Secretary** — Smart assistant that summarizes, prioritizes, and drafts replies using your live data
 
 ## Architecture
@@ -160,6 +160,17 @@ ASSISTANT_NAME=Alex
 
 Works with any OpenAI-compatible API (`OPENAI_BASE_URL`). Open the **Assistant** page to chat.
 
+## Start My Day
+
+Your home screen (`Start My Day`) generates a personalized brief:
+
+- **Today** — what needs attention right now
+- **This week** — items to keep on your radar
+- **This month** — bigger-picture goals
+- **Checklist** — 6–10 actionable tasks you can check off (add your own too)
+
+Click **Start my day** each morning. Refresh anytime if you've synced new emails or projects.
+
 ## Roadmap
 
 Future enhancements you may want to add:
@@ -169,6 +180,7 @@ Future enhancements you may want to add:
 - [x] Outlook work + Gmail personal email sync
 - [x] AI secretary assistant
 - [x] Quick call notepad linked to projects
+- [x] Start My Day brief with checklist
 - [ ] Link emails/texts/voicemails to projects from the UI
 - [ ] Calendar and task planning
 - [ ] Search across all communications

@@ -5,7 +5,9 @@ import type {
   AssistantStatus,
   Call,
   CallerRole,
+  ChecklistItem,
   DashboardStats,
+  DayPlan,
   Email,
   GrasshopperStatus,
   GrasshopperSyncResult,
@@ -50,6 +52,20 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   getStats: () => request<DashboardStats>("/dashboard/stats"),
+
+  getDayPlan: () => request<DayPlan | null>("/day-start"),
+  generateDayPlan: (regenerate = false) =>
+    request<DayPlan>(`/day-start/generate?regenerate=${regenerate}`, { method: "POST" }),
+  addChecklistItem: (text: string) =>
+    request<ChecklistItem>("/day-start/checklist", {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    }),
+  updateChecklistItem: (id: number, data: { is_completed: boolean }) =>
+    request<ChecklistItem>(`/day-start/checklist/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
 
   getProjects: () => request<Project[]>("/projects"),
   createProject: (data: Pick<Project, "name" | "description" | "status" | "color">) =>

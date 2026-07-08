@@ -248,6 +248,60 @@ class AssistantStatus(BaseModel):
     name: str
 
 
+class ChecklistItemRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    text: str
+    priority: str
+    is_completed: bool
+    is_user_added: bool
+    sort_order: int
+    created_at: datetime
+
+
+class ChecklistItemCreate(BaseModel):
+    text: str = Field(min_length=1, max_length=500)
+
+
+class ChecklistItemUpdate(BaseModel):
+    is_completed: bool | None = None
+
+
+class DayPlanRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    plan_date: str
+    greeting: str
+    today_focus: list[str]
+    week_focus: list[str]
+    month_focus: list[str]
+    generated_at: datetime
+    checklist_items: list[ChecklistItemRead]
+
+    @classmethod
+    def from_model(cls, plan: "DayPlan") -> "DayPlanRead":
+        import json
+
+        from app.models import DayPlan as DayPlanModel
+
+        assert isinstance(plan, DayPlanModel)
+        return cls(
+            id=plan.id,
+            plan_date=plan.plan_date,
+            greeting=plan.greeting,
+            today_focus=json.loads(plan.today_focus or "[]"),
+            week_focus=json.loads(plan.week_focus or "[]"),
+            month_focus=json.loads(plan.month_focus or "[]"),
+            generated_at=plan.generated_at,
+            checklist_items=sorted(
+                [ChecklistItemRead.model_validate(i) for i in plan.checklist_items],
+                key=lambda item: item.sort_order,
+            ),
+        )
+
+
 class AssistantMessageRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

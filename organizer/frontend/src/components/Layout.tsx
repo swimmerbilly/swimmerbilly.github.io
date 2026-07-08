@@ -2,7 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { NotepadProvider } from "./NotepadProvider";
 
 const navItems = [
-  { to: "/", label: "Dashboard", icon: "◉" },
+  { to: "/", label: "Start My Day", icon: "☀" },
   { to: "/projects", label: "Projects", icon: "▣" },
   { to: "/integrations", label: "Integrations", icon: "⚡" },
   { to: "/assistant", label: "Assistant", icon: "✦" },

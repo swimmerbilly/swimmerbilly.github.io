@@ -130,6 +130,27 @@ export interface Voicemail {
   created_at: string;
 }
 
+export interface ChecklistItem {
+  id: number;
+  text: string;
+  priority: string;
+  is_completed: boolean;
+  is_user_added: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface DayPlan {
+  id: number;
+  plan_date: string;
+  greeting: string;
+  today_focus: string[];
+  week_focus: string[];
+  month_focus: string[];
+  generated_at: string;
+  checklist_items: ChecklistItem[];
+}
+
 export interface DashboardStats {
   project_count: number;
   active_projects: number;

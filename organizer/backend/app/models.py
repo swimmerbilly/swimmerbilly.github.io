@@ -158,3 +158,34 @@ class AssistantMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     conversation: Mapped[AssistantConversation] = relationship(back_populates="messages")
+
+
+class DayPlan(Base):
+    __tablename__ = "day_plans"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    plan_date: Mapped[str] = mapped_column(String(10), unique=True, index=True, nullable=False)
+    greeting: Mapped[str] = mapped_column(Text, default="")
+    today_focus: Mapped[str] = mapped_column(Text, default="[]")
+    week_focus: Mapped[str] = mapped_column(Text, default="[]")
+    month_focus: Mapped[str] = mapped_column(Text, default="[]")
+    generated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    checklist_items: Mapped[list["ChecklistItem"]] = relationship(
+        back_populates="day_plan", order_by="ChecklistItem.sort_order"
+    )
+
+
+class ChecklistItem(Base):
+    __tablename__ = "checklist_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    day_plan_id: Mapped[int] = mapped_column(ForeignKey("day_plans.id"), nullable=False, index=True)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    priority: Mapped[str] = mapped_column(String(10), default="medium")
+    is_completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_user_added: Mapped[bool] = mapped_column(Boolean, default=False)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    day_plan: Mapped[DayPlan] = relationship(back_populates="checklist_items")

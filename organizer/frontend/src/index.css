@@ -670,6 +670,171 @@ code {
     height: 3.5rem;
     justify-content: center;
   }
+
+  .day-focus-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.day-start-hero {
+  margin-bottom: 1.25rem;
+}
+
+.day-start-hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.day-start-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.day-greeting {
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.day-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.focus-card h3 {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.focus-card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.focus-card li {
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.focus-card-today {
+  border-top: 3px solid var(--accent);
+}
+
+.focus-card-week {
+  border-top: 3px solid #f59e0b;
+}
+
+.focus-card-month {
+  border-top: 3px solid #8b5cf6;
+}
+
+.day-checklist-card {
+  margin-bottom: 1.5rem;
+}
+
+.day-checklist-header {
+  margin-bottom: 1rem;
+}
+
+.day-progress-bar {
+  height: 6px;
+  background: var(--bg);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+
+.day-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #34d399);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.day-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.day-checklist li {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  transition: opacity 0.2s, border-color 0.2s;
+}
+
+.day-checklist li.completed {
+  opacity: 0.55;
+}
+
+.day-checklist li.completed .checklist-text {
+  text-decoration: line-through;
+}
+
+.day-checklist label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+}
+
+.day-checklist input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+.checklist-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.badge-priority {
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.badge-priority-high {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--danger);
+}
+
+.badge-priority-medium {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--warning);
+}
+
+.badge-priority-low {
+  background: rgba(139, 156, 179, 0.15);
+  color: var(--text-muted);
+}
+
+.day-add-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.day-stats-section {
+  margin-top: 0.5rem;
 }
 
 @media (max-width: 900px) {
