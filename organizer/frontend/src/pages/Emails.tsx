@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client";
-import ProjectLinkSuggest from "../components/ProjectLinkSuggest";
+import ProjectLinkBar from "../components/ProjectLinkBar";
+import UnlinkedFilter from "../components/UnlinkedFilter";
 import {
   EmptyState,
   FormField,
@@ -14,7 +15,24 @@ import {
 import type { CommunicationDirection } from "../types";
 
 export default function EmailsPage() {
-  const { data: emails, error, loading, reload } = useAsyncData(() => api.getEmails());
+  const [unlinkedOnly, setUnlinkedOnly] = useState(false);
+  const { data: emails, error, loading, reload } = useAsyncData(
+    () => api.getEmails({ unlinkedOnly }),
+    [unlinkedOnly]
+  );
+  const { data: projects } = useAsyncData(() => api.getProjects());
+  const { data: allEmails, reload: reloadAllEmails } = useAsyncData(() => api.getEmails());
+
+  const refresh = () => {
+    reload();
+    reloadAllEmails();
+  };
+
+  const unlinkedCount = useMemo(
+    () => allEmails?.filter((e) => !e.project_id).length ?? 0,
+    [allEmails]
+  );
+
   const [showModal, setShowModal] = useState(false);
   const [fromAddress, setFromAddress] = useState("");
   const [toAddress, setToAddress] = useState("");
@@ -39,26 +57,38 @@ export default function EmailsPage() {
     setToAddress("");
     setSubject("");
     setBody("");
-    reload();
+    refresh();
   };
 
   const toggleRead = async (id: number, isRead: boolean) => {
     await api.updateEmail(id, { is_read: !isRead });
-    reload();
+    refresh();
   };
 
   return (
     <>
       <PageHeader
         title="Emails"
-        description="Work Outlook and personal Gmail sync from Integrations. Manual entries are also supported."
+        description="Link emails to Harvest projects so your timeline and briefs stay accurate."
       />
 
       <div className="toolbar">
-        <span>{emails?.length ?? 0} emails</span>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-          + Log Email
-        </button>
+        <span>
+          {emails?.length ?? 0} emails
+          {unlinkedCount > 0 && !unlinkedOnly && (
+            <span className="meta"> · {unlinkedCount} unlinked</span>
+          )}
+        </span>
+        <div className="toolbar-actions">
+          <UnlinkedFilter
+            showUnlinkedOnly={unlinkedOnly}
+            onChange={setUnlinkedOnly}
+            unlinkedCount={unlinkedCount}
+          />
+          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+            + Log Email
+          </button>
+        </div>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
@@ -66,11 +96,17 @@ export default function EmailsPage() {
 
       {!loading && emails?.length === 0 && (
         <EmptyState
-          message="No emails logged yet."
+          message={
+            unlinkedOnly
+              ? "All emails are linked to projects."
+              : "No emails logged yet."
+          }
           action={
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-              Log your first email
-            </button>
+            !unlinkedOnly ? (
+              <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                Log your first email
+              </button>
+            ) : undefined
           }
         />
       )}
@@ -88,6 +124,7 @@ export default function EmailsPage() {
                 {email.subject || "(no subject)"}
                 {email.account_label === "work" && <span className="badge badge-work">Outlook</span>}
                 {email.account_label === "personal" && <span className="badge badge-personal">Gmail</span>}
+                {!email.project_id && <span className="badge badge-unlinked">Unlinked</span>}
               </div>
               <div className="meta">
                 {email.direction === "inbound" ? "From" : "To"}:{" "}
@@ -100,17 +137,19 @@ export default function EmailsPage() {
                 </p>
               )}
               <div className="meta">{formatDate(email.received_at)}</div>
-              <ProjectLinkSuggest
-                commType="email"
-                commId={email.id}
-                projectId={email.project_id}
-                onLinked={reload}
-              />
+              {projects && (
+                <ProjectLinkBar
+                  commType="email"
+                  commId={email.id}
+                  projectId={email.project_id}
+                  projectName={email.project_name}
+                  projectColor={email.project_color}
+                  projects={projects}
+                  onUpdated={refresh}
+                />
+              )}
               <div className="comm-actions" onClick={(e) => e.stopPropagation()}>
-                <Link
-                  className="btn btn-ghost btn-sm"
-                  to={`/assistant?email_id=${email.id}`}
-                >
+                <Link className="btn btn-ghost btn-sm" to={`/assistant?email_id=${email.id}`}>
                   Draft reply with Alex
                 </Link>
               </div>

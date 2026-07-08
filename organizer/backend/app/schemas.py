@@ -131,6 +131,8 @@ class EmailRead(EmailBase):
     id: int
     account_label: str | None = None
     external_message_id: str | None = None
+    project_name: str | None = None
+    project_color: str | None = None
     received_at: datetime
     created_at: datetime
 
@@ -159,6 +161,8 @@ class TextRead(TextBase):
 
     id: int
     grasshopper_message_id: str | None = None
+    project_name: str | None = None
+    project_color: str | None = None
     sent_at: datetime
     created_at: datetime
 
@@ -200,6 +204,7 @@ class CallRead(CallBase):
     id: int
     grasshopper_message_id: str | None = None
     project_name: str | None = None
+    project_color: str | None = None
     follow_up_at: datetime | None = None
     follow_up_completed: bool = False
     called_at: datetime
@@ -232,6 +237,8 @@ class VoicemailRead(VoicemailBase):
 
     id: int
     grasshopper_message_id: str | None = None
+    project_name: str | None = None
+    project_color: str | None = None
     received_at: datetime
     created_at: datetime
 

@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { api } from "../api/client";
-import ProjectLinkSuggest from "../components/ProjectLinkSuggest";
+import ProjectLinkBar from "../components/ProjectLinkBar";
+import UnlinkedFilter from "../components/UnlinkedFilter";
 import {
   EmptyState,
   FormField,
@@ -13,9 +14,24 @@ import {
 } from "../components/ui";
 
 export default function VoicemailsPage() {
-  const { data: voicemails, error, loading, reload } = useAsyncData(() =>
-    api.getVoicemails()
+  const [unlinkedOnly, setUnlinkedOnly] = useState(false);
+  const { data: voicemails, error, loading, reload } = useAsyncData(
+    () => api.getVoicemails({ unlinkedOnly }),
+    [unlinkedOnly]
   );
+  const { data: projects } = useAsyncData(() => api.getProjects());
+  const { data: allVoicemails, reload: reloadAllVoicemails } = useAsyncData(() => api.getVoicemails());
+
+  const refresh = () => {
+    reload();
+    reloadAllVoicemails();
+  };
+
+  const unlinkedCount = useMemo(
+    () => allVoicemails?.filter((v) => !v.project_id).length ?? 0,
+    [allVoicemails]
+  );
+
   const [showModal, setShowModal] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [contactName, setContactName] = useState("");
@@ -38,26 +54,38 @@ export default function VoicemailsPage() {
     setContactName("");
     setTranscript("");
     setDurationSeconds("");
-    reload();
+    refresh();
   };
 
   const toggleListened = async (id: number, isListened: boolean) => {
     await api.updateVoicemail(id, { is_listened: !isListened });
-    reload();
+    refresh();
   };
 
   return (
     <>
       <PageHeader
         title="Voicemails"
-        description="Track voicemails and transcripts in one place."
+        description="Link voicemails to projects so nothing falls through the cracks."
       />
 
       <div className="toolbar">
-        <span>{voicemails?.length ?? 0} voicemails</span>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-          + Log Voicemail
-        </button>
+        <span>
+          {voicemails?.length ?? 0} voicemails
+          {unlinkedCount > 0 && !unlinkedOnly && (
+            <span className="meta"> · {unlinkedCount} unlinked</span>
+          )}
+        </span>
+        <div className="toolbar-actions">
+          <UnlinkedFilter
+            showUnlinkedOnly={unlinkedOnly}
+            onChange={setUnlinkedOnly}
+            unlinkedCount={unlinkedCount}
+          />
+          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+            + Log Voicemail
+          </button>
+        </div>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
@@ -65,11 +93,10 @@ export default function VoicemailsPage() {
 
       {!loading && voicemails?.length === 0 && (
         <EmptyState
-          message="No voicemails logged yet."
-          action={
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-              Log your first voicemail
-            </button>
+          message={
+            unlinkedOnly
+              ? "All voicemails are linked to projects."
+              : "No voicemails logged yet."
           }
         />
       )}
@@ -88,6 +115,7 @@ export default function VoicemailsPage() {
                 {vm.grasshopper_message_id && (
                   <span className="badge badge-grasshopper">Grasshopper</span>
                 )}
+                {!vm.project_id && <span className="badge badge-unlinked">Unlinked</span>}
               </div>
               <div className="meta">
                 Duration: {formatDuration(vm.duration_seconds)} · {formatDate(vm.received_at)}
@@ -106,12 +134,17 @@ export default function VoicemailsPage() {
                   {vm.transcript.length > 150 ? "…" : ""}
                 </p>
               )}
-              <ProjectLinkSuggest
-                commType="voicemail"
-                commId={vm.id}
-                projectId={vm.project_id}
-                onLinked={reload}
-              />
+              {projects && (
+                <ProjectLinkBar
+                  commType="voicemail"
+                  commId={vm.id}
+                  projectId={vm.project_id}
+                  projectName={vm.project_name}
+                  projectColor={vm.project_color}
+                  projects={projects}
+                  onUpdated={refresh}
+                />
+              )}
             </div>
           </div>
         ))}

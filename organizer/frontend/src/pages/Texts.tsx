@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { api } from "../api/client";
-import ProjectLinkSuggest from "../components/ProjectLinkSuggest";
+import ProjectLinkBar from "../components/ProjectLinkBar";
+import UnlinkedFilter from "../components/UnlinkedFilter";
 import {
   EmptyState,
   FormField,
@@ -13,7 +14,24 @@ import {
 import type { CommunicationDirection } from "../types";
 
 export default function TextsPage() {
-  const { data: texts, error, loading, reload } = useAsyncData(() => api.getTexts());
+  const [unlinkedOnly, setUnlinkedOnly] = useState(false);
+  const { data: texts, error, loading, reload } = useAsyncData(
+    () => api.getTexts({ unlinkedOnly }),
+    [unlinkedOnly]
+  );
+  const { data: projects } = useAsyncData(() => api.getProjects());
+  const { data: allTexts, reload: reloadAllTexts } = useAsyncData(() => api.getTexts());
+
+  const refresh = () => {
+    reload();
+    reloadAllTexts();
+  };
+
+  const unlinkedCount = useMemo(
+    () => allTexts?.filter((t) => !t.project_id).length ?? 0,
+    [allTexts]
+  );
+
   const [showModal, setShowModal] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [contactName, setContactName] = useState("");
@@ -34,23 +52,35 @@ export default function TextsPage() {
     setPhoneNumber("");
     setContactName("");
     setBody("");
-    reload();
+    refresh();
   };
 
   const toggleRead = async (id: number, isRead: boolean) => {
     await api.updateText(id, { is_read: !isRead });
-    reload();
+    refresh();
   };
 
   return (
     <>
-      <PageHeader title="Texts" description="Keep track of text message conversations." />
+      <PageHeader title="Texts" description="Link texts to the right Harvest project." />
 
       <div className="toolbar">
-        <span>{texts?.length ?? 0} messages</span>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-          + Log Text
-        </button>
+        <span>
+          {texts?.length ?? 0} messages
+          {unlinkedCount > 0 && !unlinkedOnly && (
+            <span className="meta"> · {unlinkedCount} unlinked</span>
+          )}
+        </span>
+        <div className="toolbar-actions">
+          <UnlinkedFilter
+            showUnlinkedOnly={unlinkedOnly}
+            onChange={setUnlinkedOnly}
+            unlinkedCount={unlinkedCount}
+          />
+          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+            + Log Text
+          </button>
+        </div>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
@@ -58,11 +88,8 @@ export default function TextsPage() {
 
       {!loading && texts?.length === 0 && (
         <EmptyState
-          message="No text messages logged yet."
-          action={
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-              Log your first text
-            </button>
+          message={
+            unlinkedOnly ? "All texts are linked to projects." : "No text messages logged yet."
           }
         />
       )}
@@ -81,15 +108,21 @@ export default function TextsPage() {
                 <span className="meta" style={{ marginLeft: "0.5rem" }}>
                   ({text.direction})
                 </span>
+                {!text.project_id && <span className="badge badge-unlinked">Unlinked</span>}
               </div>
               <p style={{ marginTop: "0.35rem" }}>{text.body}</p>
               <div className="meta">{formatDate(text.sent_at)}</div>
-              <ProjectLinkSuggest
-                commType="text"
-                commId={text.id}
-                projectId={text.project_id}
-                onLinked={reload}
-              />
+              {projects && (
+                <ProjectLinkBar
+                  commType="text"
+                  commId={text.id}
+                  projectId={text.project_id}
+                  projectName={text.project_name}
+                  projectColor={text.project_color}
+                  projects={projects}
+                  onUpdated={refresh}
+                />
+              )}
             </div>
           </div>
         ))}

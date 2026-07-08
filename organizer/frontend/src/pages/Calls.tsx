@@ -1,6 +1,8 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
+import ProjectLinkBar from "../components/ProjectLinkBar";
+import UnlinkedFilter from "../components/UnlinkedFilter";
 import {
   EmptyState,
   FormField,
@@ -25,12 +27,24 @@ export default function CallsPage() {
   const [searchParams] = useSearchParams();
   const projectFilter = searchParams.get("project");
   const projectFilterId = projectFilter ? parseInt(projectFilter, 10) : undefined;
+  const [unlinkedOnly, setUnlinkedOnly] = useState(false);
 
   const { data: calls, error, loading, reload } = useAsyncData(
-    () => api.getCalls(projectFilterId),
-    [projectFilterId]
+    () => api.getCalls(projectFilterId, { unlinkedOnly: projectFilterId ? false : unlinkedOnly }),
+    [projectFilterId, unlinkedOnly]
   );
   const { data: projects } = useAsyncData(() => api.getProjects());
+  const { data: allCalls, reload: reloadAllCalls } = useAsyncData(() => api.getCalls());
+
+  const refresh = () => {
+    reload();
+    reloadAllCalls();
+  };
+
+  const unlinkedCount = useMemo(
+    () => allCalls?.filter((c) => !c.project_id).length ?? 0,
+    [allCalls]
+  );
 
   const [showModal, setShowModal] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -65,7 +79,7 @@ export default function CallsPage() {
     setDurationSeconds("");
     setNotes("");
     setProjectId("");
-    reload();
+    refresh();
   };
 
   return (
@@ -85,10 +99,24 @@ export default function CallsPage() {
       )}
 
       <div className="toolbar">
-        <span>{calls?.length ?? 0} call notes</span>
-        <button className="btn btn-ghost" onClick={() => setShowModal(true)}>
-          + Full log entry
-        </button>
+        <span>
+          {calls?.length ?? 0} call notes
+          {!projectFilterId && unlinkedCount > 0 && !unlinkedOnly && (
+            <span className="meta"> · {unlinkedCount} unlinked</span>
+          )}
+        </span>
+        <div className="toolbar-actions">
+          {!projectFilterId && (
+            <UnlinkedFilter
+              showUnlinkedOnly={unlinkedOnly}
+              onChange={setUnlinkedOnly}
+              unlinkedCount={unlinkedCount}
+            />
+          )}
+          <button className="btn btn-ghost" onClick={() => setShowModal(true)}>
+            + Full log entry
+          </button>
+        </div>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
@@ -109,17 +137,26 @@ export default function CallsPage() {
                     {ROLE_LABELS[call.caller_role]}
                   </span>
                 )}
+                {!call.project_id && <span className="badge badge-unlinked">Unlinked</span>}
               </div>
-              {call.project_name && (
-                <p className="meta">
-                  <Link to={`/calls?project=${call.project_id}`}>{call.project_name}</Link>
-                </p>
+              {call.notes && (
+                <p style={{ marginTop: "0.75rem", whiteSpace: "pre-wrap" }}>{call.notes}</p>
               )}
               <div className="meta">
                 {formatDate(call.called_at)}
                 {call.duration_seconds ? ` · ${formatDuration(call.duration_seconds)}` : ""}
               </div>
-              {call.notes && <p style={{ marginTop: "0.75rem", whiteSpace: "pre-wrap" }}>{call.notes}</p>}
+              {projects && (
+                <ProjectLinkBar
+                  commType="call"
+                  commId={call.id}
+                  projectId={call.project_id}
+                  projectName={call.project_name}
+                  projectColor={call.project_color}
+                  projects={projects}
+                  onUpdated={refresh}
+                />
+              )}
             </div>
           </div>
         ))}

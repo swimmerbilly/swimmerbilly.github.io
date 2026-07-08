@@ -132,20 +132,31 @@ export const api = {
     return request<AssistantChatResponse>(`/assistant/briefing${query}`, { method: "POST" });
   },
 
-  getEmails: () => request<Email[]>("/emails"),
+  getEmails: (opts?: { unlinkedOnly?: boolean }) => {
+    const query = opts?.unlinkedOnly ? "?unlinked_only=true" : "";
+    return request<Email[]>(`/emails${query}`);
+  },
   createEmail: (data: Omit<Email, "id" | "created_at" | "received_at" | "account_label" | "external_message_id">) =>
     request<Email>("/emails", { method: "POST", body: JSON.stringify(data) }),
   updateEmail: (id: number, data: Partial<Pick<Email, "is_read" | "is_starred" | "project_id">>) =>
     request<Email>(`/emails/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
 
-  getTexts: () => request<TextMessage[]>("/texts"),
+  getTexts: (opts?: { unlinkedOnly?: boolean }) => {
+    const query = opts?.unlinkedOnly ? "?unlinked_only=true" : "";
+    return request<TextMessage[]>(`/texts${query}`);
+  },
   createText: (data: Omit<TextMessage, "id" | "created_at" | "sent_at" | "grasshopper_message_id">) =>
     request<TextMessage>("/texts", { method: "POST", body: JSON.stringify(data) }),
   updateText: (id: number, data: Partial<Pick<TextMessage, "is_read" | "project_id">>) =>
     request<TextMessage>(`/texts/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
 
-  getCalls: (projectId?: number) =>
-    request<Call[]>(projectId ? `/calls?project_id=${projectId}` : "/calls"),
+  getCalls: (projectId?: number, opts?: { unlinkedOnly?: boolean }) => {
+    const params = new URLSearchParams();
+    if (projectId) params.set("project_id", String(projectId));
+    if (opts?.unlinkedOnly) params.set("unlinked_only", "true");
+    const query = params.toString();
+    return request<Call[]>(query ? `/calls?${query}` : "/calls");
+  },
   getLinkSuggestion: (commType: string, commId: number) =>
     request<ProjectSuggestion[]>(`/linking/suggest?comm_type=${commType}&comm_id=${commId}`),
   linkCommToProject: (commType: string, commId: number, projectId: number) =>
@@ -170,7 +181,10 @@ export const api = {
   ) => request<Call>(`/calls/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   getProjectCalls: (projectId: number) => request<Call[]>(`/projects/${projectId}/calls`),
 
-  getVoicemails: () => request<Voicemail[]>("/voicemails"),
+  getVoicemails: (opts?: { unlinkedOnly?: boolean }) => {
+    const query = opts?.unlinkedOnly ? "?unlinked_only=true" : "";
+    return request<Voicemail[]>(`/voicemails${query}`);
+  },
   createVoicemail: (data: Omit<Voicemail, "id" | "created_at" | "received_at" | "grasshopper_message_id">) =>
     request<Voicemail>("/voicemails", { method: "POST", body: JSON.stringify(data) }),
   updateVoicemail: (

@@ -14,11 +14,14 @@ router = APIRouter(prefix="/calls", tags=["calls"])
 @router.get("", response_model=list[CallRead])
 def list_calls(
     project_id: int | None = Query(default=None),
+    unlinked_only: bool = Query(default=False),
     db: Session = Depends(get_db),
 ) -> list[CallRead]:
     query = db.query(Call).options(joinedload(Call.project))
     if project_id is not None:
         query = query.filter(Call.project_id == project_id)
+    if unlinked_only:
+        query = query.filter(Call.project_id.is_(None))
     calls = query.order_by(Call.called_at.desc()).all()
     return [to_call_read(call) for call in calls]
 

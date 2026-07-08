@@ -75,6 +75,8 @@ export interface GrasshopperSyncResult {
 export interface Email {
   id: number;
   project_id: number | null;
+  project_name?: string | null;
+  project_color?: string | null;
   direction: CommunicationDirection;
   from_address: string;
   to_address: string;
@@ -91,6 +93,8 @@ export interface Email {
 export interface TextMessage {
   id: number;
   project_id: number | null;
+  project_name?: string | null;
+  project_color?: string | null;
   direction: CommunicationDirection;
   contact_name: string | null;
   phone_number: string;
@@ -105,6 +109,7 @@ export interface Call {
   id: number;
   project_id: number | null;
   project_name: string | null;
+  project_color?: string | null;
   direction: CommunicationDirection;
   contact_name: string | null;
   caller_role: CallerRole | null;
@@ -121,6 +126,8 @@ export interface Call {
 export interface Voicemail {
   id: number;
   project_id: number | null;
+  project_name?: string | null;
+  project_color?: string | null;
   contact_name: string | null;
   phone_number: string;
   transcript: string | null;
