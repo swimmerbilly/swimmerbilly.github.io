@@ -5,6 +5,8 @@ from app.config import settings
 from app.database import get_db
 from app.models import AssistantConversation
 from app.schemas import (
+    AssistantAction,
+    AssistantActionResult,
     AssistantChatRequest,
     AssistantChatResponse,
     AssistantConversationRead,
@@ -12,6 +14,7 @@ from app.schemas import (
     AssistantStatus,
 )
 from app.services.assistant import AssistantError
+from app.services.assistant_actions import execute_action
 from app.services.assistant_chat import (
     chat_with_assistant,
     create_conversation,
@@ -65,8 +68,8 @@ async def assistant_chat(
     payload: AssistantChatRequest, db: Session = Depends(get_db)
 ) -> AssistantChatResponse:
     try:
-        conversation, user_message, assistant_message = await chat_with_assistant(
-            db, payload.message, payload.conversation_id
+        conversation, user_message, assistant_message, actions = await chat_with_assistant(
+            db, payload.message, payload.conversation_id, payload.context
         )
     except AssistantError as exc:
         status_code = exc.status_code or 400
@@ -80,7 +83,20 @@ async def assistant_chat(
         conversation=conversation,
         user_message=user_message,
         assistant_message=assistant_message,
+        actions=[AssistantAction(**action) for action in actions],
     )
+
+
+@router.post("/actions/execute", response_model=AssistantActionResult)
+async def execute_assistant_action(
+    action: AssistantAction, db: Session = Depends(get_db)
+) -> AssistantActionResult:
+    try:
+        payload = {"type": action.type, **action.params}
+        result = await execute_action(db, payload)
+    except AssistantError as exc:
+        raise HTTPException(status_code=exc.status_code or 400, detail=str(exc)) from exc
+    return AssistantActionResult(**result)
 
 
 @router.post("/briefing", response_model=AssistantChatResponse)
@@ -89,7 +105,9 @@ async def assistant_briefing(
     db: Session = Depends(get_db),
 ) -> AssistantChatResponse:
     try:
-        conversation, user_message, assistant_message = await generate_briefing(db, conversation_id)
+        conversation, user_message, assistant_message, actions = await generate_briefing(
+            db, conversation_id
+        )
     except AssistantError as exc:
         status_code = exc.status_code or 400
         if status_code >= 500:
@@ -100,4 +118,5 @@ async def assistant_briefing(
         conversation=conversation,
         user_message=user_message,
         assistant_message=assistant_message,
+        actions=[AssistantAction(**action) for action in actions],
     )

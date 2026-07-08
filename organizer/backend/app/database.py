@@ -96,9 +96,38 @@ def _migrate_grasshopper_columns() -> None:
             )
 
 
+def _migrate_feature_columns() -> None:
+    inspector = inspect(engine)
+    table_migrations = {
+        "calls": {
+            "follow_up_at": "ALTER TABLE calls ADD COLUMN follow_up_at DATETIME",
+            "follow_up_completed": "ALTER TABLE calls ADD COLUMN follow_up_completed BOOLEAN DEFAULT 0",
+        },
+        "day_plans": {
+            "wrap_up_summary": "ALTER TABLE day_plans ADD COLUMN wrap_up_summary TEXT",
+            "wrap_up_tomorrow": "ALTER TABLE day_plans ADD COLUMN wrap_up_tomorrow TEXT DEFAULT '[]'",
+            "wrap_up_generated_at": "ALTER TABLE day_plans ADD COLUMN wrap_up_generated_at DATETIME",
+            "weekly_review_stalled": "ALTER TABLE day_plans ADD COLUMN weekly_review_stalled TEXT DEFAULT '[]'",
+            "weekly_review_gaps": "ALTER TABLE day_plans ADD COLUMN weekly_review_gaps TEXT DEFAULT '[]'",
+            "weekly_review_priorities": "ALTER TABLE day_plans ADD COLUMN weekly_review_priorities TEXT DEFAULT '[]'",
+            "weekly_review_generated_at": "ALTER TABLE day_plans ADD COLUMN weekly_review_generated_at DATETIME",
+        },
+    }
+
+    with engine.begin() as connection:
+        for table_name, migrations in table_migrations.items():
+            if table_name not in inspector.get_table_names():
+                continue
+            existing = {column["name"] for column in inspector.get_columns(table_name)}
+            for column_name, statement in migrations.items():
+                if column_name not in existing:
+                    connection.execute(text(statement))
+
+
 def init_db() -> None:
     from app import models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
     _migrate_projects_table()
     _migrate_grasshopper_columns()
+    _migrate_feature_columns()

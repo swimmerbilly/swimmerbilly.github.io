@@ -1,8 +1,10 @@
 import type {
+  AssistantAction,
   AssistantChatResponse,
   AssistantConversation,
   AssistantMessage,
   AssistantStatus,
+  AttentionItem,
   Call,
   CallerRole,
   ChecklistItem,
@@ -16,7 +18,10 @@ import type {
   MailboxStatus,
   MailboxSyncResult,
   Project,
+  ProjectContact,
+  ProjectSuggestion,
   TextMessage,
+  TimelineEntry,
   Voicemail,
 } from "../types";
 
@@ -66,8 +71,15 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
+  generateWrapUp: () => request<DayPlan>("/day-start/wrap-up", { method: "POST" }),
+  generateWeeklyReview: () => request<DayPlan>("/day-start/weekly-review", { method: "POST" }),
+
+  getAttentionQueue: () => request<AttentionItem[]>("/attention"),
 
   getProjects: () => request<Project[]>("/projects"),
+  getProject: (id: number) => request<Project>(`/projects/${id}`),
+  getProjectTimeline: (id: number) => request<TimelineEntry[]>(`/projects/${id}/timeline`),
+  getProjectContacts: (id: number) => request<ProjectContact[]>(`/projects/${id}/contacts`),
   createProject: (data: Pick<Project, "name" | "description" | "status" | "color">) =>
     request<Project>("/projects", { method: "POST", body: JSON.stringify(data) }),
   deleteProject: (id: number) =>
@@ -97,10 +109,23 @@ export const api = {
     request<AssistantMessage[]>(`/assistant/conversations/${conversationId}/messages`),
   deleteAssistantConversation: (conversationId: number) =>
     request<void>(`/assistant/conversations/${conversationId}`, { method: "DELETE" }),
-  chatWithAssistant: (message: string, conversationId?: number) =>
+  chatWithAssistant: (
+    message: string,
+    conversationId?: number,
+    context?: { type: string; email_id?: number }
+  ) =>
     request<AssistantChatResponse>("/assistant/chat", {
       method: "POST",
-      body: JSON.stringify({ message, conversation_id: conversationId ?? null }),
+      body: JSON.stringify({
+        message,
+        conversation_id: conversationId ?? null,
+        context: context ?? null,
+      }),
+    }),
+  executeAssistantAction: (action: AssistantAction) =>
+    request<{ success: boolean; message: string }>("/assistant/actions/execute", {
+      method: "POST",
+      body: JSON.stringify(action),
     }),
   getAssistantBriefing: (conversationId?: number) => {
     const query = conversationId ? `?conversation_id=${conversationId}` : "";
@@ -121,18 +146,27 @@ export const api = {
 
   getCalls: (projectId?: number) =>
     request<Call[]>(projectId ? `/calls?project_id=${projectId}` : "/calls"),
+  getLinkSuggestion: (commType: string, commId: number) =>
+    request<ProjectSuggestion[]>(`/linking/suggest?comm_type=${commType}&comm_id=${commId}`),
+  linkCommToProject: (commType: string, commId: number, projectId: number) =>
+    request<{ success: boolean }>("/linking/apply", {
+      method: "POST",
+      body: JSON.stringify({ comm_type: commType, comm_id: commId, project_id: projectId }),
+    }),
+
   createQuickCallNote: (data: {
     project_id: number;
     contact_name: string;
     caller_role?: CallerRole | null;
     notes: string;
     phone_number?: string | null;
+    follow_up_days?: number | null;
   }) => request<Call>("/calls/quick-note", { method: "POST", body: JSON.stringify(data) }),
   createCall: (data: Omit<Call, "id" | "created_at" | "called_at" | "grasshopper_message_id" | "project_name">) =>
     request<Call>("/calls", { method: "POST", body: JSON.stringify(data) }),
   updateCall: (
     id: number,
-    data: Partial<Pick<Call, "project_id" | "notes" | "caller_role">>
+    data: Partial<Pick<Call, "project_id" | "notes" | "caller_role" | "follow_up_completed">>
   ) => request<Call>(`/calls/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   getProjectCalls: (projectId: number) => request<Call[]>(`/projects/${projectId}/calls`),
 

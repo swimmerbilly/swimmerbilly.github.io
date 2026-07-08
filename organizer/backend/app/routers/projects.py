@@ -3,7 +3,9 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.models import Call, Project
-from app.schemas import CallRead, ProjectCreate, ProjectRead, ProjectUpdate
+from app.schemas import CallRead, ProjectContact, ProjectCreate, ProjectRead, ProjectUpdate, TimelineEntry
+from app.services.project_contacts import build_project_contacts
+from app.services.project_timeline import build_project_timeline
 from app.services.call_serializer import to_call_read
 
 router = APIRouter(prefix="/projects", tags=["projects"])
@@ -29,6 +31,22 @@ def get_project(project_id: int, db: Session = Depends(get_db)) -> Project:
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
+
+
+@router.get("/{project_id}/timeline", response_model=list[TimelineEntry])
+def get_project_timeline(project_id: int, db: Session = Depends(get_db)) -> list[TimelineEntry]:
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return build_project_timeline(db, project_id)
+
+
+@router.get("/{project_id}/contacts", response_model=list[ProjectContact])
+def get_project_contacts(project_id: int, db: Session = Depends(get_db)) -> list[ProjectContact]:
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return build_project_contacts(db, project_id)
 
 
 @router.get("/{project_id}/calls", response_model=list[CallRead])

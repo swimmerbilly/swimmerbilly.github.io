@@ -112,6 +112,8 @@ export interface Call {
   duration_seconds: number | null;
   notes: string | null;
   grasshopper_message_id: string | null;
+  follow_up_at: string | null;
+  follow_up_completed: boolean;
   called_at: string;
   created_at: string;
 }
@@ -149,6 +151,15 @@ export interface DayPlan {
   month_focus: string[];
   generated_at: string;
   checklist_items: ChecklistItem[];
+  wrap_up_summary: string | null;
+  wrap_up_tomorrow: string[];
+  wrap_up_completed: string[];
+  wrap_up_slipped: string[];
+  wrap_up_generated_at: string | null;
+  weekly_review_stalled: string[];
+  weekly_review_gaps: string[];
+  weekly_review_priorities: string[];
+  weekly_review_generated_at: string | null;
 }
 
 export interface DashboardStats {
@@ -182,8 +193,50 @@ export interface AssistantMessage {
   created_at: string;
 }
 
+export interface AssistantAction {
+  type: string;
+  label: string;
+  params: Record<string, number | string | boolean>;
+}
+
 export interface AssistantChatResponse {
   conversation: AssistantConversation;
   user_message: AssistantMessage;
   assistant_message: AssistantMessage;
+  actions: AssistantAction[];
+}
+
+export interface AttentionItem {
+  priority: number;
+  type: string;
+  id: number;
+  title: string;
+  detail: string;
+  href: string;
+  occurred_at: string;
+}
+
+export interface TimelineEntry {
+  type: string;
+  id: number;
+  occurred_at: string;
+  title: string;
+  summary: string;
+  body_preview: string | null;
+  meta: Record<string, unknown>;
+}
+
+export interface ProjectContact {
+  name: string;
+  phone: string | null;
+  email: string | null;
+  roles: string[];
+  sources: string[];
+  touch_count: number;
+}
+
+export interface ProjectSuggestion {
+  project_id: number;
+  project_name: string;
+  confidence: number;
 }

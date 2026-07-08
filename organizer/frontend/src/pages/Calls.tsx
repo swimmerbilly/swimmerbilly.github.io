@@ -56,6 +56,8 @@ export default function CallsPage() {
       phone_number: phoneNumber,
       duration_seconds: durationSeconds ? parseInt(durationSeconds, 10) : null,
       notes: notes || null,
+      follow_up_at: null,
+      follow_up_completed: false,
     });
     setShowModal(false);
     setPhoneNumber("");

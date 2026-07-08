@@ -8,6 +8,8 @@ from app.services.day_start_service import (
     add_checklist_item,
     delete_checklist_item,
     generate_day_plan,
+    generate_weekly_review_plan,
+    generate_wrap_up_plan,
     get_day_plan,
     toggle_checklist_item,
 )
@@ -36,6 +38,36 @@ async def create_day_plan(
 ) -> DayPlanRead:
     try:
         plan = await generate_day_plan(db, plan_date, regenerate=regenerate)
+    except AssistantError as exc:
+        status_code = exc.status_code or 400
+        if status_code >= 500:
+            status_code = 502
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+    return _to_read(plan)
+
+
+@router.post("/wrap-up", response_model=DayPlanRead)
+async def create_wrap_up(
+    plan_date: str | None = Query(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$"),
+    db: Session = Depends(get_db),
+) -> DayPlanRead:
+    try:
+        plan = await generate_wrap_up_plan(db, plan_date)
+    except AssistantError as exc:
+        status_code = exc.status_code or 400
+        if status_code >= 500:
+            status_code = 502
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+    return _to_read(plan)
+
+
+@router.post("/weekly-review", response_model=DayPlanRead)
+async def create_weekly_review(
+    plan_date: str | None = Query(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$"),
+    db: Session = Depends(get_db),
+) -> DayPlanRead:
+    try:
+        plan = await generate_weekly_review_plan(db, plan_date)
     except AssistantError as exc:
         status_code = exc.status_code or 400
         if status_code >= 500:

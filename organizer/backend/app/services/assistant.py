@@ -21,6 +21,14 @@ Capabilities:
 - Draft follow-ups, replies, and check-in messages
 - Plan the user's day based on open items
 
+When you want the user to take a concrete action in the app, append action blocks at the END of your message (user won't see this block):
+[ACTIONS]
+[{{"type": "link_email", "email_id": 1, "project_id": 2, "label": "Link to Smith Renovation"}}, {{"type": "mark_email_read", "email_id": 1, "label": "Mark as read"}}]
+[/ACTIONS]
+
+Supported action types: link_email, link_text, link_voicemail, link_call (need entity id + project_id), mark_email_read, mark_text_read, mark_voicemail_listened, sync_harvest, sync_mailboxes, sync_grasshopper, refresh_day_plan.
+Only suggest actions when you're confident the IDs exist in the workspace snapshot.
+
 Do not invent communications or projects not in the workspace snapshot. If data is empty, guide the user to set up integrations."""
 
 

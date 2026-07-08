@@ -79,7 +79,7 @@ export default function ProjectsPage() {
         <span className="project-dot" style={{ background: project.color, marginTop: "0.4rem" }} />
         <div>
           <div className="title">
-            {project.name}
+            <Link to={`/projects/${project.id}`}>{project.name}</Link>
             {project.harvest_id !== null && <span className="badge badge-harvest">Harvest</span>}
           </div>
           {project.harvest_client_name && (
@@ -96,6 +96,9 @@ export default function ProjectsPage() {
             <button className="btn btn-ghost" onClick={() => openNotepad(project.id)}>
               Take call notes
             </button>
+            <Link className="btn btn-ghost" to={`/projects/${project.id}`}>
+              View timeline
+            </Link>
             <Link className="btn btn-ghost" to={`/calls?project=${project.id}`}>
               View call notes
             </Link>

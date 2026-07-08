@@ -23,6 +23,7 @@ export default function CallNotepad({ open, onClose, initialProjectId = null }: 
   const [callerRole, setCallerRole] = useState<CallerRole>("contractor");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [notes, setNotes] = useState("");
+  const [followUpDays, setFollowUpDays] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -51,6 +52,7 @@ export default function CallNotepad({ open, onClose, initialProjectId = null }: 
     setCallerRole("contractor");
     setPhoneNumber("");
     setNotes("");
+    setFollowUpDays("");
     setError(null);
     setSaved(false);
     if (!keepProject) setProjectId("");
@@ -81,6 +83,7 @@ export default function CallNotepad({ open, onClose, initialProjectId = null }: 
         caller_role: callerRole,
         notes: notes.trim(),
         phone_number: phoneNumber.trim() || null,
+        follow_up_days: followUpDays ? parseInt(followUpDays, 10) : null,
       });
       setSaved(true);
       resetForm(true);
@@ -154,6 +157,18 @@ export default function CallNotepad({ open, onClose, initialProjectId = null }: 
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="(555) 123-4567"
+            />
+          </label>
+
+          <label className="notepad-field">
+            <span>Follow up in (days, optional)</span>
+            <input
+              type="number"
+              min={1}
+              max={90}
+              value={followUpDays}
+              onChange={(e) => setFollowUpDays(e.target.value)}
+              placeholder="e.g. 3"
             />
           </label>
 

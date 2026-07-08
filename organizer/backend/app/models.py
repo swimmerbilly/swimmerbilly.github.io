@@ -107,6 +107,8 @@ class Call(Base):
     duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     grasshopper_message_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    follow_up_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    follow_up_completed: Mapped[bool] = mapped_column(Boolean, default=False)
     called_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
@@ -170,6 +172,13 @@ class DayPlan(Base):
     week_focus: Mapped[str] = mapped_column(Text, default="[]")
     month_focus: Mapped[str] = mapped_column(Text, default="[]")
     generated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    wrap_up_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    wrap_up_tomorrow: Mapped[str] = mapped_column(Text, default="[]")
+    wrap_up_generated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    weekly_review_stalled: Mapped[str] = mapped_column(Text, default="[]")
+    weekly_review_gaps: Mapped[str] = mapped_column(Text, default="[]")
+    weekly_review_priorities: Mapped[str] = mapped_column(Text, default="[]")
+    weekly_review_generated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     checklist_items: Mapped[list["ChecklistItem"]] = relationship(
         back_populates="day_plan", order_by="ChecklistItem.sort_order"

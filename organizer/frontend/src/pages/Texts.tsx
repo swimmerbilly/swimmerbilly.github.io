@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { api } from "../api/client";
+import ProjectLinkSuggest from "../components/ProjectLinkSuggest";
 import {
   EmptyState,
   FormField,
@@ -83,6 +84,12 @@ export default function TextsPage() {
               </div>
               <p style={{ marginTop: "0.35rem" }}>{text.body}</p>
               <div className="meta">{formatDate(text.sent_at)}</div>
+              <ProjectLinkSuggest
+                commType="text"
+                commId={text.id}
+                projectId={text.project_id}
+                onLinked={reload}
+              />
             </div>
           </div>
         ))}

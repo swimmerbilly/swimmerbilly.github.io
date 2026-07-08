@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { api } from "../api/client";
+import ProjectLinkSuggest from "../components/ProjectLinkSuggest";
 import {
   EmptyState,
   FormField,
@@ -105,6 +106,12 @@ export default function VoicemailsPage() {
                   {vm.transcript.length > 150 ? "…" : ""}
                 </p>
               )}
+              <ProjectLinkSuggest
+                commType="voicemail"
+                commId={vm.id}
+                projectId={vm.project_id}
+                onLinked={reload}
+              />
             </div>
           </div>
         ))}

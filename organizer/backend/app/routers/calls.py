@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 
@@ -27,6 +29,10 @@ def create_quick_call_note(payload: QuickCallNoteCreate, db: Session = Depends(g
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
+    follow_up_at = None
+    if payload.follow_up_days:
+        follow_up_at = datetime.utcnow() + timedelta(days=payload.follow_up_days)
+
     call = Call(
         project_id=payload.project_id,
         direction=CommunicationDirection.INBOUND,
@@ -35,6 +41,7 @@ def create_quick_call_note(payload: QuickCallNoteCreate, db: Session = Depends(g
         phone_number=payload.phone_number.strip() if payload.phone_number else "—",
         notes=payload.notes.strip(),
         duration_seconds=None,
+        follow_up_at=follow_up_at,
     )
     db.add(call)
     db.commit()

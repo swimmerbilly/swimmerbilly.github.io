@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.models import AssistantConversation, AssistantMessage
 from app.services.assistant import AssistantError, generate_assistant_reply
+from app.services.assistant_actions import normalize_action, strip_actions_from_reply
 from app.services.assistant_context import build_workspace_context
 
 MAX_HISTORY_MESSAGES = 20
@@ -53,10 +54,26 @@ async def chat_with_assistant(
     db: Session,
     user_message: str,
     conversation_id: int | None = None,
-) -> tuple[AssistantConversation, AssistantMessage, AssistantMessage]:
+    context: dict | None = None,
+) -> tuple[AssistantConversation, AssistantMessage, AssistantMessage, list[dict]]:
     message = user_message.strip()
     if not message:
         raise AssistantError("Message cannot be empty.")
+
+    if context and context.get("type") == "email_draft":
+        email_id = context.get("email_id")
+        from app.models import Email
+
+        email = db.get(Email, email_id) if email_id else None
+        if email:
+            message = (
+                f"Draft a professional reply to this email.\n\n"
+                f"From: {email.from_address}\n"
+                f"To: {email.to_address}\n"
+                f"Subject: {email.subject}\n\n"
+                f"{email.body}\n\n---\n\n"
+                f"User request: {message}"
+            )
 
     if conversation_id:
         conversation = db.get(AssistantConversation, conversation_id)
@@ -78,11 +95,13 @@ async def chat_with_assistant(
 
     workspace_context = build_workspace_context(db)
     reply_text = await generate_assistant_reply(history_payload, workspace_context)
+    visible_reply, raw_actions = strip_actions_from_reply(reply_text)
+    actions = [normalize_action(a) for a in raw_actions if isinstance(a, dict)]
 
     assistant_entry = AssistantMessage(
         conversation_id=conversation.id,
         role="assistant",
-        content=reply_text,
+        content=visible_reply,
     )
     db.add(assistant_entry)
 
@@ -97,11 +116,11 @@ async def chat_with_assistant(
     db.refresh(user_entry)
     db.refresh(assistant_entry)
 
-    return conversation, user_entry, assistant_entry
+    return conversation, user_entry, assistant_entry, actions
 
 
 async def generate_briefing(db: Session, conversation_id: int | None = None) -> tuple[
-    AssistantConversation, AssistantMessage, AssistantMessage
+    AssistantConversation, AssistantMessage, AssistantMessage, list[dict]
 ]:
     prompt = (
         "Give me a concise morning briefing. Prioritize what needs my attention today, "

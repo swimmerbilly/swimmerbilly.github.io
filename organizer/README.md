@@ -11,7 +11,12 @@ This is a **standalone application** living in the `organizer/` directory, separ
 - **Texts** — Track text message conversations
 - **Calls** — Quick call notepad for architects/contractors, filed to the right Harvest project
 - **Voicemails** — Record voicemails with transcripts and listened/unlistened status
-- **Start My Day** — AI brief for today, this week, and this month with a daily checklist
+- **Start My Day** — AI brief for today, this week, and this month with a daily checklist, evening wrap-up, and weekly review
+- **Needs attention** — prioritized queue on your morning dashboard
+- **Project timelines** — chronological view of all comms per project, plus contact roll-up
+- **Smart linking** — Alex suggests which project emails, texts, and voicemails belong to
+- **Alex actions** — assistant can link items, mark read, and trigger syncs from chat
+- **Follow-up reminders** — set when saving call notes; surfaces on Start My Day when due
 - **AI Secretary** — Smart assistant that summarizes, prioritizes, and drafts replies using your live data
 
 ## Architecture

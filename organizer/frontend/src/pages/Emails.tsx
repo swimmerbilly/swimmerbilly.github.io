@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../api/client";
+import ProjectLinkSuggest from "../components/ProjectLinkSuggest";
 import {
   EmptyState,
   FormField,
@@ -91,8 +93,27 @@ export default function EmailsPage() {
                 {email.direction === "inbound" ? "From" : "To"}:{" "}
                 {email.direction === "inbound" ? email.from_address : email.to_address}
               </div>
-              {email.body && <p className="meta" style={{ marginTop: "0.5rem" }}>{email.body.slice(0, 120)}{email.body.length > 120 ? "…" : ""}</p>}
+              {email.body && (
+                <p className="meta" style={{ marginTop: "0.5rem" }}>
+                  {email.body.slice(0, 120)}
+                  {email.body.length > 120 ? "…" : ""}
+                </p>
+              )}
               <div className="meta">{formatDate(email.received_at)}</div>
+              <ProjectLinkSuggest
+                commType="email"
+                commId={email.id}
+                projectId={email.project_id}
+                onLinked={reload}
+              />
+              <div className="comm-actions" onClick={(e) => e.stopPropagation()}>
+                <Link
+                  className="btn btn-ghost btn-sm"
+                  to={`/assistant?email_id=${email.id}`}
+                >
+                  Draft reply with Alex
+                </Link>
+              </div>
             </div>
             {email.is_starred && <span>★</span>}
           </div>

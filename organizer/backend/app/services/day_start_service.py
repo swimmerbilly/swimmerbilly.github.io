@@ -1,12 +1,14 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session, joinedload
 
-from app.models import ChecklistItem, DayPlan
+from app.models import ChecklistItem, DayPlan, Call
 from app.services.assistant import AssistantError
 from app.services.assistant_context import build_workspace_context
 from app.services.day_start import generate_day_start_plan
+from app.services.day_wrap_up import generate_wrap_up
+from app.services.weekly_review import generate_weekly_review
 
 
 def _today_str() -> str:
@@ -127,3 +129,71 @@ def delete_checklist_item(db: Session, item_id: int) -> None:
         raise AssistantError("Checklist item not found", status_code=404)
     db.delete(item)
     db.commit()
+
+
+def _checklist_summary(plan: DayPlan) -> str:
+    lines = []
+    for item in sorted(plan.checklist_items, key=lambda i: i.sort_order):
+        status = "done" if item.is_completed else "open"
+        lines.append(f"- [{status}] {item.text}")
+    return "\n".join(lines) if lines else "No checklist items yet."
+
+
+async def generate_wrap_up_plan(db: Session, plan_date: str | None = None) -> DayPlan:
+    target = plan_date or _today_str()
+    plan = get_day_plan(db, target)
+    if not plan:
+        plan = DayPlan(plan_date=target, greeting="")
+        db.add(plan)
+        db.flush()
+
+    workspace_context = build_workspace_context(db)
+    wrap_up = await generate_wrap_up(workspace_context, _checklist_summary(plan))
+
+    plan.wrap_up_summary = wrap_up.get("summary", "")
+    plan.wrap_up_tomorrow = json.dumps(
+        {
+            "tomorrow": wrap_up.get("tomorrow", []),
+            "completed": wrap_up.get("completed", []),
+            "slipped": wrap_up.get("slipped", []),
+        }
+    )
+    plan.wrap_up_generated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(plan)
+    return get_day_plan(db, target) or plan
+
+
+async def generate_weekly_review_plan(db: Session, plan_date: str | None = None) -> DayPlan:
+    target = plan_date or _today_str()
+    plan = get_day_plan(db, target)
+    if not plan:
+        plan = DayPlan(plan_date=target, greeting="")
+        db.add(plan)
+        db.flush()
+
+    workspace_context = build_workspace_context(db)
+    review = await generate_weekly_review(workspace_context)
+
+    plan.weekly_review_stalled = json.dumps(review.get("stalled_projects", []))
+    plan.weekly_review_gaps = json.dumps(review.get("communication_gaps", []))
+    plan.weekly_review_priorities = json.dumps(review.get("priorities", []))
+    plan.weekly_review_generated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(plan)
+    return get_day_plan(db, target) or plan
+
+
+def get_due_follow_ups(db: Session) -> list:
+    now = datetime.utcnow()
+    return (
+        db.query(Call)
+        .filter(
+            Call.follow_up_at.isnot(None),
+            Call.follow_up_completed.is_(False),
+            Call.follow_up_at <= now + timedelta(days=1),
+        )
+        .order_by(Call.follow_up_at.asc())
+        .limit(10)
+        .all()
+    )

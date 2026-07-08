@@ -184,12 +184,14 @@ class QuickCallNoteCreate(BaseModel):
     caller_role: CallerRole | None = None
     notes: str = Field(min_length=1)
     phone_number: str | None = Field(default=None, max_length=30)
+    follow_up_days: int | None = Field(default=None, ge=1, le=90)
 
 
 class CallUpdate(BaseModel):
     project_id: int | None = None
     caller_role: CallerRole | None = None
     notes: str | None = None
+    follow_up_completed: bool | None = None
 
 
 class CallRead(CallBase):
@@ -198,6 +200,8 @@ class CallRead(CallBase):
     id: int
     grasshopper_message_id: str | None = None
     project_name: str | None = None
+    follow_up_at: datetime | None = None
+    follow_up_completed: bool = False
     called_at: datetime
     created_at: datetime
 
@@ -279,6 +283,15 @@ class DayPlanRead(BaseModel):
     month_focus: list[str]
     generated_at: datetime
     checklist_items: list[ChecklistItemRead]
+    wrap_up_summary: str | None = None
+    wrap_up_tomorrow: list[str] = []
+    wrap_up_completed: list[str] = []
+    wrap_up_slipped: list[str] = []
+    wrap_up_generated_at: datetime | None = None
+    weekly_review_stalled: list[str] = []
+    weekly_review_gaps: list[str] = []
+    weekly_review_priorities: list[str] = []
+    weekly_review_generated_at: datetime | None = None
 
     @classmethod
     def from_model(cls, plan: "DayPlan") -> "DayPlanRead":
@@ -287,6 +300,17 @@ class DayPlanRead(BaseModel):
         from app.models import DayPlan as DayPlanModel
 
         assert isinstance(plan, DayPlanModel)
+
+        wrap_data: dict = {}
+        try:
+            parsed = json.loads(plan.wrap_up_tomorrow or "{}")
+            if isinstance(parsed, list):
+                wrap_data = {"tomorrow": parsed}
+            elif isinstance(parsed, dict):
+                wrap_data = parsed
+        except json.JSONDecodeError:
+            wrap_data = {}
+
         return cls(
             id=plan.id,
             plan_date=plan.plan_date,
@@ -299,6 +323,15 @@ class DayPlanRead(BaseModel):
                 [ChecklistItemRead.model_validate(i) for i in plan.checklist_items],
                 key=lambda item: item.sort_order,
             ),
+            wrap_up_summary=plan.wrap_up_summary,
+            wrap_up_tomorrow=wrap_data.get("tomorrow", []),
+            wrap_up_completed=wrap_data.get("completed", []),
+            wrap_up_slipped=wrap_data.get("slipped", []),
+            wrap_up_generated_at=plan.wrap_up_generated_at,
+            weekly_review_stalled=json.loads(plan.weekly_review_stalled or "[]"),
+            weekly_review_gaps=json.loads(plan.weekly_review_gaps or "[]"),
+            weekly_review_priorities=json.loads(plan.weekly_review_priorities or "[]"),
+            weekly_review_generated_at=plan.weekly_review_generated_at,
         )
 
 
@@ -324,10 +357,71 @@ class AssistantConversationRead(BaseModel):
 class AssistantChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=8000)
     conversation_id: int | None = None
+    context: dict | None = None
+
+
+class AssistantAction(BaseModel):
+    type: str
+    label: str
+    params: dict = {}
+
+
+class AssistantActionResult(BaseModel):
+    success: bool
+    message: str
 
 
 class AssistantChatResponse(BaseModel):
     conversation: AssistantConversationRead
     user_message: AssistantMessageRead
     assistant_message: AssistantMessageRead
+    actions: list[AssistantAction] = []
+
+
+class AttentionItem(BaseModel):
+    priority: int
+    type: str
+    id: int
+    title: str
+    detail: str
+    href: str
+    occurred_at: str
+
+
+class TimelineEntry(BaseModel):
+    type: str
+    id: int
+    occurred_at: str
+    title: str
+    summary: str
+    body_preview: str | None = None
+    meta: dict = {}
+
+
+class ProjectContact(BaseModel):
+    name: str
+    phone: str | None = None
+    email: str | None = None
+    roles: list[str] = []
+    sources: list[str] = []
+    touch_count: int = 0
+
+
+class ProjectSuggestion(BaseModel):
+    project_id: int
+    project_name: str
+    confidence: float
+
+
+class LinkSuggestion(BaseModel):
+    comm_type: str
+    comm_id: int
+    title: str
+    suggestion: ProjectSuggestion
+
+
+class LinkCommRequest(BaseModel):
+    comm_type: str = Field(pattern=r"^(email|text|voicemail|call)$")
+    comm_id: int
+    project_id: int
 

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { PageHeader, useAsyncData } from "../components/ui";
-import type { AssistantConversation, AssistantMessage } from "../types";
+import type { AssistantAction, AssistantConversation, AssistantMessage } from "../types";
 
 const QUICK_ACTIONS = [
   "What needs my attention right now?",
@@ -11,6 +12,10 @@ const QUICK_ACTIONS = [
 ];
 
 export default function AssistantPage() {
+  const [searchParams] = useSearchParams();
+  const emailIdParam = searchParams.get("email_id");
+  const draftEmailId = emailIdParam ? parseInt(emailIdParam, 10) : null;
+
   const { data: status, loading: statusLoading } = useAsyncData(() => api.getAssistantStatus());
   const {
     data: conversations,
@@ -20,10 +25,13 @@ export default function AssistantPage() {
 
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
+  const [pendingActions, setPendingActions] = useState<AssistantAction[]>([]);
+  const [actionStatus, setActionStatus] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const draftStartedRef = useRef(false);
 
   const activeConversation = conversations?.find((c) => c.id === activeConversationId) ?? null;
 
@@ -37,27 +45,43 @@ export default function AssistantPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, sending]);
+  }, [messages, sending, pendingActions]);
+
+  useEffect(() => {
+    if (!draftEmailId || draftStartedRef.current || !status?.configured) return;
+    draftStartedRef.current = true;
+    sendMessage("Draft a professional reply I can send as-is.", undefined, {
+      type: "email_draft",
+      email_id: draftEmailId,
+    });
+  }, [draftEmailId, status?.configured]);
 
   const handleNewConversation = async () => {
     const conversation = await api.createAssistantConversation();
     reloadConversations();
     setActiveConversationId(conversation.id);
     setMessages([]);
+    setPendingActions([]);
     setError(null);
   };
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (
+    text: string,
+    conversationId?: number,
+    context?: { type: string; email_id?: number }
+  ) => {
     const message = text.trim();
     if (!message || sending) return;
 
     setSending(true);
     setError(null);
+    setActionStatus(null);
     setInput("");
+    setPendingActions([]);
 
     const optimisticUser: AssistantMessage = {
       id: Date.now(),
-      conversation_id: activeConversationId ?? 0,
+      conversation_id: conversationId ?? activeConversationId ?? 0,
       role: "user",
       content: message,
       created_at: new Date().toISOString(),
@@ -65,12 +89,17 @@ export default function AssistantPage() {
     setMessages((prev) => [...prev, optimisticUser]);
 
     try {
-      const response = await api.chatWithAssistant(message, activeConversationId ?? undefined);
+      const response = await api.chatWithAssistant(
+        message,
+        conversationId ?? activeConversationId ?? undefined,
+        context
+      );
       setActiveConversationId(response.conversation.id);
       setMessages((prev) => {
         const withoutOptimistic = prev.filter((m) => m.id !== optimisticUser.id);
         return [...withoutOptimistic, response.user_message, response.assistant_message];
       });
+      setPendingActions(response.actions ?? []);
       reloadConversations();
     } catch (err) {
       setMessages((prev) => prev.filter((m) => m.id !== optimisticUser.id));
@@ -90,15 +119,28 @@ export default function AssistantPage() {
     if (sending) return;
     setSending(true);
     setError(null);
+    setPendingActions([]);
     try {
       const response = await api.getAssistantBriefing(activeConversationId ?? undefined);
       setActiveConversationId(response.conversation.id);
       setMessages(await api.getAssistantMessages(response.conversation.id));
+      setPendingActions(response.actions ?? []);
       reloadConversations();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not generate briefing");
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleExecuteAction = async (action: AssistantAction) => {
+    setActionStatus(null);
+    try {
+      const result = await api.executeAssistantAction(action);
+      setActionStatus(result.message);
+      setPendingActions((prev) => prev.filter((a) => a.label !== action.label || a.type !== action.type));
+    } catch (err) {
+      setActionStatus(err instanceof Error ? err.message : "Action failed");
     }
   };
 
@@ -108,6 +150,7 @@ export default function AssistantPage() {
     if (activeConversationId === conversation.id) {
       setActiveConversationId(null);
       setMessages([]);
+      setPendingActions([]);
     }
     reloadConversations();
   };
@@ -118,7 +161,7 @@ export default function AssistantPage() {
         title="AI Secretary"
         description={
           status?.configured
-            ? `${status.name} helps you prioritize, summarize, and draft communications.`
+            ? `${status.name} helps you prioritize, summarize, draft replies, and take actions.`
             : "Add OPENAI_API_KEY to organizer/backend/.env to enable your AI secretary."
         }
       />
@@ -128,6 +171,12 @@ export default function AssistantPage() {
           AI assistant not configured. Add <code>OPENAI_API_KEY</code> to{" "}
           <code>organizer/backend/.env</code> and restart the backend.
         </div>
+      )}
+
+      {draftEmailId && (
+        <p className="meta" style={{ marginBottom: "1rem" }}>
+          Drafting a reply for email #{draftEmailId}
+        </p>
       )}
 
       <div className="assistant-layout">
@@ -169,7 +218,7 @@ export default function AssistantPage() {
               <h3>{activeConversation?.title ?? `${status?.name ?? "Assistant"} is ready`}</h3>
               <p className="meta">
                 {status?.configured
-                  ? `Powered by ${status.model}`
+                  ? `Powered by ${status.model} · can run actions for you`
                   : "Configure OpenAI to start chatting"}
               </p>
             </div>
@@ -216,6 +265,23 @@ export default function AssistantPage() {
                 <div className="assistant-message-body">{message.content}</div>
               </div>
             ))}
+
+            {pendingActions.length > 0 && (
+              <div className="assistant-actions">
+                <p className="meta">Suggested actions:</p>
+                {pendingActions.map((action) => (
+                  <button
+                    key={`${action.type}-${action.label}`}
+                    className="assistant-chip"
+                    onClick={() => handleExecuteAction(action)}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {actionStatus && <p className="sync-result">{actionStatus}</p>}
 
             {sending && (
               <div className="assistant-message assistant-message-assistant">
