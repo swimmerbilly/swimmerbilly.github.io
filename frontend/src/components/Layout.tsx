@@ -6,7 +6,7 @@ const navItems = [
   { to: "/projects", label: "Projects", icon: "▣" },
   { to: "/integrations", label: "Integrations", icon: "⚡" },
   { to: "/setup", label: "Connect", icon: "🔗" },
-  { to: "/permits", label: "Permits", icon: "🏗" },
+  { to: "/permits", label: "Market Research", icon: "◎" },
   { to: "/assistant", label: "Assistant", icon: "✦" },
   { to: "/emails", label: "Emails", icon: "✉" },
   { to: "/texts", label: "Texts", icon: "💬" },

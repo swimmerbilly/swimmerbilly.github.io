@@ -60,6 +60,14 @@ NAME_AFTER_LABEL_RE = re.compile(
     r"(?=\s*(?:PE\b|P\.E\.|$|,|\n|;))",
     re.I,
 )
+ARCHITECT_LABEL_RE = re.compile(
+    r"(?:architect(?:\s+of\s+record)?|architecture)\s*[:\-–]\s*"
+    r"([A-Z][A-Za-z0-9 .'&\-]{2,80})",
+    re.I,
+)
+FIRM_HINT_RE = re.compile(
+    r"\b([A-Z][A-Za-z0-9 .'&\-]{2,60}\b(?:Architects|Architecture|Engineering|Engineers|Structural|Design|Studio|Group|LLC|Inc\.?|LLP))\b"
+)
 
 
 def detect_structural_signals(
@@ -106,13 +114,63 @@ def extract_engineer_from_text(text: str | None) -> dict[str, str | None]:
                 window = text[idx : idx + 120]
                 words = re.findall(r"[A-Z][a-zA-Z.'\-]+", window)
                 # Skip the label words themselves
-                candidates = [w for w in words if w.lower() not in {"structural", "engineer", "record", "licensed", "civil", "pe"}]
+                candidates = [
+                    w
+                    for w in words
+                    if w.lower()
+                    not in {"structural", "engineer", "record", "licensed", "civil", "pe"}
+                ]
                 if len(candidates) >= 2:
                     name = " ".join(candidates[:3])
                     break
 
+    firm = None
+    for match in FIRM_HINT_RE.finditer(text):
+        candidate = match.group(1).strip()
+        if any(tok in candidate.lower() for tok in ("engineer", "structural")):
+            firm = candidate[:200]
+            break
+
     return {
         "name": name,
         "license": license_match.group(1) if license_match else None,
-        "firm": None,
+        "firm": firm,
     }
+
+
+def extract_architect_from_text(text: str | None) -> dict[str, str | None]:
+    if not text:
+        return {"name": None, "firm": None}
+
+    label_match = ARCHITECT_LABEL_RE.search(text)
+    name = None
+    firm = None
+    if label_match:
+        value = label_match.group(1).strip(" .,-")
+        if any(tok in value.lower() for tok in ("architect", "architecture", "llc", "inc", "studio", "group")):
+            firm = value[:200]
+        else:
+            name = value[:200]
+
+    if not firm:
+        for match in FIRM_HINT_RE.finditer(text):
+            candidate = match.group(1).strip()
+            if any(tok in candidate.lower() for tok in ("architect", "architecture", "design", "studio")):
+                firm = candidate[:200]
+                break
+
+    return {"name": name, "firm": firm}
+
+
+def parse_money(value: str | float | int | None) -> float | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    cleaned = re.sub(r"[^0-9.\-]", "", str(value))
+    if not cleaned or cleaned in {".", "-", "-."}:
+        return None
+    try:
+        return float(cleaned)
+    except ValueError:
+        return None

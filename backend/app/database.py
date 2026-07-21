@@ -112,6 +112,14 @@ def _migrate_feature_columns() -> None:
             "weekly_review_priorities": "ALTER TABLE day_plans ADD COLUMN weekly_review_priorities TEXT DEFAULT '[]'",
             "weekly_review_generated_at": "ALTER TABLE day_plans ADD COLUMN weekly_review_generated_at DATETIME",
         },
+        "building_permits": {
+            "work_type": "ALTER TABLE building_permits ADD COLUMN work_type VARCHAR(200)",
+            "estimated_value_amount": "ALTER TABLE building_permits ADD COLUMN estimated_value_amount FLOAT",
+            "contractor_name": "ALTER TABLE building_permits ADD COLUMN contractor_name VARCHAR(200)",
+            "contractor_trade": "ALTER TABLE building_permits ADD COLUMN contractor_trade VARCHAR(120)",
+            "architect_name": "ALTER TABLE building_permits ADD COLUMN architect_name VARCHAR(200)",
+            "architect_firm": "ALTER TABLE building_permits ADD COLUMN architect_firm VARCHAR(200)",
+        },
     }
 
     with engine.begin() as connection:

@@ -292,6 +292,7 @@ export interface BuildingPermit {
   external_id: string;
   permit_number: string;
   permit_type: string | null;
+  work_type: string | null;
   status: string | null;
   description: string | null;
   address: string | null;
@@ -300,6 +301,11 @@ export interface BuildingPermit {
   applied_at: string | null;
   issued_at: string | null;
   estimated_value: string | null;
+  estimated_value_amount: number | null;
+  contractor_name: string | null;
+  contractor_trade: string | null;
+  architect_name: string | null;
+  architect_firm: string | null;
   has_structural_plans: boolean;
   structural_signals: string[];
   structural_engineer_name: string | null;
@@ -328,6 +334,9 @@ export interface PermitStats {
   total: number;
   with_structural_plans: number;
   with_engineer_named: number;
+  with_contractor: number;
+  with_architect: number;
+  total_estimated_value: number;
   by_jurisdiction: Record<string, number>;
 }
 
@@ -335,4 +344,47 @@ export interface PermitImportResult {
   created: number;
   updated: number;
   structural_found: number;
+}
+
+export interface MarketFirmRow {
+  name: string;
+  job_count: number;
+  total_value: number;
+  avg_job_value?: number;
+  median_job_value?: number;
+  jobs_per_month: number;
+  jurisdictions?: string[];
+  top_architects?: string[];
+  top_engineers?: string[];
+  top_contractors?: string[];
+  recent_permits?: Record<string, unknown>[];
+  firm?: string | null;
+}
+
+export interface MarketPairRow {
+  contractor: string;
+  architect: string;
+  job_count: number;
+  total_value: number;
+}
+
+export interface MarketResearchReport {
+  window_months: number;
+  since: string;
+  permit_count: number;
+  structural_count: number;
+  total_estimated_value: number;
+  with_contractor: number;
+  with_architect: number;
+  with_engineer: number;
+  coverage: {
+    contractor_pct: number;
+    architect_pct: number;
+    engineer_pct: number;
+  };
+  contractors: MarketFirmRow[];
+  architects: MarketFirmRow[];
+  engineers: MarketFirmRow[];
+  contractor_architect_pairs: MarketPairRow[];
+  notes: string[];
 }

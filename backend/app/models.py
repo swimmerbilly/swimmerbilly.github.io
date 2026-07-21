@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -220,6 +220,7 @@ class BuildingPermit(Base):
     external_id: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
     permit_number: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
     permit_type: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    work_type: Mapped[str | None] = mapped_column(String(200), nullable=True)
     status: Mapped[str | None] = mapped_column(String(80), nullable=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     address: Mapped[str | None] = mapped_column(String(300), nullable=True)
@@ -228,11 +229,16 @@ class BuildingPermit(Base):
     applied_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     issued_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     estimated_value: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    estimated_value_amount: Mapped[float | None] = mapped_column(Float, nullable=True, index=True)
+    contractor_name: Mapped[str | None] = mapped_column(String(200), nullable=True, index=True)
+    contractor_trade: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    architect_name: Mapped[str | None] = mapped_column(String(200), nullable=True, index=True)
+    architect_firm: Mapped[str | None] = mapped_column(String(200), nullable=True, index=True)
     has_structural_plans: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     structural_signals: Mapped[str | None] = mapped_column(Text, nullable=True)
     structural_engineer_name: Mapped[str | None] = mapped_column(String(200), nullable=True, index=True)
     structural_engineer_license: Mapped[str | None] = mapped_column(String(80), nullable=True)
-    structural_engineer_firm: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    structural_engineer_firm: Mapped[str | None] = mapped_column(String(200), nullable=True, index=True)
     source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     source_system: Mapped[str] = mapped_column(String(40), default="manual")
     raw_json: Mapped[str | None] = mapped_column(Text, nullable=True)

@@ -483,6 +483,7 @@ class BuildingPermitRead(BaseModel):
     external_id: str
     permit_number: str
     permit_type: str | None = None
+    work_type: str | None = None
     status: str | None = None
     description: str | None = None
     address: str | None = None
@@ -491,6 +492,11 @@ class BuildingPermitRead(BaseModel):
     applied_at: datetime | None = None
     issued_at: datetime | None = None
     estimated_value: str | None = None
+    estimated_value_amount: float | None = None
+    contractor_name: str | None = None
+    contractor_trade: str | None = None
+    architect_name: str | None = None
+    architect_firm: str | None = None
     has_structural_plans: bool = False
     structural_signals: list[str] = []
     structural_engineer_name: str | None = None
@@ -523,6 +529,7 @@ class BuildingPermitRead(BaseModel):
             external_id=permit.external_id,
             permit_number=permit.permit_number,
             permit_type=permit.permit_type,
+            work_type=permit.work_type,
             status=permit.status,
             description=permit.description,
             address=permit.address,
@@ -531,6 +538,11 @@ class BuildingPermitRead(BaseModel):
             applied_at=permit.applied_at,
             issued_at=permit.issued_at,
             estimated_value=permit.estimated_value,
+            estimated_value_amount=permit.estimated_value_amount,
+            contractor_name=permit.contractor_name,
+            contractor_trade=permit.contractor_trade,
+            architect_name=permit.architect_name,
+            architect_firm=permit.architect_firm,
             has_structural_plans=permit.has_structural_plans,
             structural_signals=signals,
             structural_engineer_name=permit.structural_engineer_name,
@@ -572,5 +584,47 @@ class PermitStats(BaseModel):
     total: int
     with_structural_plans: int
     with_engineer_named: int
+    with_contractor: int = 0
+    with_architect: int = 0
+    total_estimated_value: float = 0
     by_jurisdiction: dict[str, int]
+
+
+class MarketFirmRow(BaseModel):
+    name: str
+    job_count: int
+    total_value: float
+    avg_job_value: float = 0
+    median_job_value: float = 0
+    jobs_per_month: float = 0
+    jurisdictions: list[str] = Field(default_factory=list)
+    top_architects: list[str] = Field(default_factory=list)
+    top_engineers: list[str] = Field(default_factory=list)
+    top_contractors: list[str] = Field(default_factory=list)
+    recent_permits: list[dict] = Field(default_factory=list)
+    firm: str | None = None
+
+
+class MarketPairRow(BaseModel):
+    contractor: str
+    architect: str
+    job_count: int
+    total_value: float
+
+
+class MarketResearchReport(BaseModel):
+    window_months: int
+    since: str
+    permit_count: int
+    structural_count: int
+    total_estimated_value: float
+    with_contractor: int
+    with_architect: int
+    with_engineer: int
+    coverage: dict[str, float]
+    contractors: list[MarketFirmRow]
+    architects: list[MarketFirmRow]
+    engineers: list[MarketFirmRow]
+    contractor_architect_pairs: list[MarketPairRow]
+    notes: list[str] = Field(default_factory=list)
 

@@ -30,11 +30,14 @@ JURISDICTIONS: dict[str, Jurisdiction] = {
         id="city_of_boulder",
         name="City of Boulder",
         kind="city",
-        system="energov",
+        system="opendata",
         portal_url="https://energovcss.bouldercolorado.gov/EnerGov_Prod/SelfService/BoulderCO_Prod",
-        search_url="https://energovcss.bouldercolorado.gov/EnerGov_Prod/SelfService/BoulderCO_Prod#/search",
-        notes="Tyler EnerGov CSS. Structural plans labeled StructPln; PE seal required for structural work.",
-        crawlable=False,
+        search_url="https://open-data.bouldercolorado.gov/datasets/e3ff6248e4a547bcba31025d2c5c9fee_0/about",
+        notes=(
+            "Best bulk source: City Construction Permits open data (contractor + EstProjectCost). "
+            "EnerGov CSS still used for case detail; architect/SE rarely in open data."
+        ),
+        crawlable=True,
     ),
     "longmont": Jurisdiction(
         id="longmont",

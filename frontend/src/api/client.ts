@@ -19,6 +19,7 @@ import type {
   Jurisdiction,
   MailboxStatus,
   MailboxSyncResult,
+  MarketResearchReport,
   PermitImportResult,
   PermitStats,
   PermitSyncRun,
@@ -211,21 +212,45 @@ export const api = {
 
   getPermitJurisdictions: () => request<Jurisdiction[]>("/permits/jurisdictions"),
   getPermitStats: () => request<PermitStats>("/permits/stats"),
+  getMarketResearch: (opts?: {
+    jurisdictionId?: string;
+    months?: number;
+    structuralOnly?: boolean;
+    q?: string;
+    limit?: number;
+  }) => {
+    const params = new URLSearchParams();
+    if (opts?.jurisdictionId) params.set("jurisdiction_id", opts.jurisdictionId);
+    if (opts?.months) params.set("months", String(opts.months));
+    if (opts?.structuralOnly) params.set("structural_only", "true");
+    if (opts?.q) params.set("q", opts.q);
+    if (opts?.limit) params.set("limit", String(opts.limit));
+    const query = params.toString();
+    return request<MarketResearchReport>(
+      query ? `/permits/market-research?${query}` : "/permits/market-research"
+    );
+  },
   getPermits: (opts?: {
     jurisdictionId?: string;
     structuralOnly?: boolean;
     engineer?: string;
+    contractor?: string;
+    architect?: string;
     q?: string;
+    limit?: number;
   }) => {
     const params = new URLSearchParams();
     if (opts?.jurisdictionId) params.set("jurisdiction_id", opts.jurisdictionId);
     if (opts?.structuralOnly) params.set("structural_only", "true");
     if (opts?.engineer) params.set("engineer", opts.engineer);
+    if (opts?.contractor) params.set("contractor", opts.contractor);
+    if (opts?.architect) params.set("architect", opts.architect);
     if (opts?.q) params.set("q", opts.q);
+    if (opts?.limit) params.set("limit", String(opts.limit));
     const query = params.toString();
     return request<BuildingPermit[]>(query ? `/permits?${query}` : "/permits");
   },
-  syncPermits: (maxResults = 30) =>
+  syncPermits: (maxResults = 1500) =>
     request<PermitSyncRun[]>(`/permits/sync?max_results=${maxResults}`, { method: "POST" }),
   syncPermitJurisdiction: (jurisdictionId: string, maxResults = 40) =>
     request<PermitSyncRun>(`/permits/sync/${jurisdictionId}?max_results=${maxResults}`, {

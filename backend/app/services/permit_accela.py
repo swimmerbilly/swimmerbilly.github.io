@@ -16,7 +16,12 @@ from urllib.parse import urljoin
 import httpx
 
 from app.services.permit_jurisdictions import Jurisdiction
-from app.services.permit_structural import detect_structural_signals, extract_engineer_from_text
+from app.services.permit_structural import (
+    detect_structural_signals,
+    extract_architect_from_text,
+    extract_engineer_from_text,
+    parse_money,
+)
 
 USER_AGENT = "PersonalAssistantPermitWatch/0.1 (+local; respectful crawl)"
 
@@ -33,12 +38,19 @@ class ScrapedPermit:
     external_id: str
     permit_number: str
     permit_type: str | None = None
+    work_type: str | None = None
     status: str | None = None
     description: str | None = None
     address: str | None = None
     city: str | None = None
     applied_at: datetime | None = None
     issued_at: datetime | None = None
+    estimated_value: str | None = None
+    estimated_value_amount: float | None = None
+    contractor_name: str | None = None
+    contractor_trade: str | None = None
+    architect_name: str | None = None
+    architect_firm: str | None = None
     source_url: str | None = None
     structural_engineer_name: str | None = None
     structural_engineer_license: str | None = None
@@ -201,6 +213,31 @@ class AccelaPermitClient:
             item.structural_engineer_name = engineer["name"]
         if engineer["license"]:
             item.structural_engineer_license = engineer["license"]
+        if engineer["firm"]:
+            item.structural_engineer_firm = engineer["firm"]
+
+        architect = extract_architect_from_text(text)
+        if architect["name"]:
+            item.architect_name = architect["name"]
+        if architect["firm"]:
+            item.architect_firm = architect["firm"]
+
+        contractor_match = re.search(
+            r"(?:Licensed\s+)?Contractor\s*[:\-–]?\s*([A-Z0-9][A-Za-z0-9 &'.,\-]{2,80})",
+            text,
+            re.I,
+        )
+        if contractor_match and not item.contractor_name:
+            item.contractor_name = contractor_match.group(1).strip()[:200]
+
+        value_match = re.search(
+            r"(?:Job\s+Value|Valuation|Estimated\s+Value|Project\s+Cost)\s*[:\-–]?\s*\$?\s*([\d,]+(?:\.\d+)?)",
+            text,
+            re.I,
+        )
+        if value_match:
+            item.estimated_value = value_match.group(1)
+            item.estimated_value_amount = parse_money(value_match.group(1))
 
         # Look for labeled fields Accela often uses
         for pattern, attr in (
