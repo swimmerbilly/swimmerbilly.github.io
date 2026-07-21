@@ -7,6 +7,7 @@ import EmailsPage from "./pages/Emails";
 import IntegrationsPage from "./pages/Integrations";
 import ProjectDetailPage from "./pages/ProjectDetail";
 import SetupPage from "./pages/Setup";
+import PermitsPage from "./pages/Permits";
 import ProjectsPage from "./pages/Projects";
 import TextsPage from "./pages/Texts";
 import VoicemailsPage from "./pages/Voicemails";
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="projects/:id" element={<ProjectDetailPage />} />
         <Route path="integrations" element={<IntegrationsPage />} />
         <Route path="setup" element={<SetupPage />} />
+        <Route path="permits" element={<PermitsPage />} />
         <Route path="assistant" element={<AssistantPage />} />
         <Route path="emails" element={<EmailsPage />} />
         <Route path="texts" element={<TextsPage />} />

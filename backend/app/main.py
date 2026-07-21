@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import SessionLocal, init_db
-from app.routers import assistant, attention, calls, dashboard, day_start, emails, grasshopper, harvest, linking, mailboxes, projects, setup, texts, voicemails
+from app.routers import assistant, attention, calls, dashboard, day_start, emails, grasshopper, harvest, linking, mailboxes, permits, projects, setup, texts, voicemails
 from app.services.settings_store import load_settings_from_db
 
 
@@ -45,6 +45,7 @@ app.include_router(day_start.router, prefix="/api")
 app.include_router(attention.router, prefix="/api")
 app.include_router(linking.router, prefix="/api")
 app.include_router(setup.router, prefix="/api")
+app.include_router(permits.router, prefix="/api")
 app.include_router(assistant.router, prefix="/api")
 
 uploads_dir = Path(__file__).resolve().parent.parent / settings.grasshopper_upload_dir

@@ -5,6 +5,7 @@ import type {
   AssistantMessage,
   AssistantStatus,
   AttentionItem,
+  BuildingPermit,
   Call,
   CallerRole,
   ChecklistItem,
@@ -15,8 +16,12 @@ import type {
   GrasshopperSyncResult,
   HarvestStatus,
   HarvestSyncResult,
+  Jurisdiction,
   MailboxStatus,
   MailboxSyncResult,
+  PermitImportResult,
+  PermitStats,
+  PermitSyncRun,
   Project,
   ProjectContact,
   ProjectSuggestion,
@@ -202,5 +207,35 @@ export const api = {
     request<Voicemail>(`/voicemails/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
+    }),
+
+  getPermitJurisdictions: () => request<Jurisdiction[]>("/permits/jurisdictions"),
+  getPermitStats: () => request<PermitStats>("/permits/stats"),
+  getPermits: (opts?: {
+    jurisdictionId?: string;
+    structuralOnly?: boolean;
+    engineer?: string;
+    q?: string;
+  }) => {
+    const params = new URLSearchParams();
+    if (opts?.jurisdictionId) params.set("jurisdiction_id", opts.jurisdictionId);
+    if (opts?.structuralOnly) params.set("structural_only", "true");
+    if (opts?.engineer) params.set("engineer", opts.engineer);
+    if (opts?.q) params.set("q", opts.q);
+    const query = params.toString();
+    return request<BuildingPermit[]>(query ? `/permits?${query}` : "/permits");
+  },
+  syncPermits: (maxResults = 30) =>
+    request<PermitSyncRun[]>(`/permits/sync?max_results=${maxResults}`, { method: "POST" }),
+  syncPermitJurisdiction: (jurisdictionId: string, maxResults = 40) =>
+    request<PermitSyncRun>(`/permits/sync/${jurisdictionId}?max_results=${maxResults}`, {
+      method: "POST",
+    }),
+  seedSamplePermits: () =>
+    request<PermitImportResult>("/permits/seed-sample", { method: "POST" }),
+  importPermits: (permits: Record<string, unknown>[]) =>
+    request<PermitImportResult>("/permits/import", {
+      method: "POST",
+      body: JSON.stringify({ permits }),
     }),
 };

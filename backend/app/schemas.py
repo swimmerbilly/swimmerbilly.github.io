@@ -463,3 +463,114 @@ class LinkCommRequest(BaseModel):
     comm_id: int
     project_id: int
 
+
+class JurisdictionRead(BaseModel):
+    id: str
+    name: str
+    kind: str
+    system: str
+    portal_url: str
+    search_url: str | None = None
+    notes: str = ""
+    crawlable: bool = False
+
+
+class BuildingPermitRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    jurisdiction_id: str
+    external_id: str
+    permit_number: str
+    permit_type: str | None = None
+    status: str | None = None
+    description: str | None = None
+    address: str | None = None
+    city: str | None = None
+    parcel_number: str | None = None
+    applied_at: datetime | None = None
+    issued_at: datetime | None = None
+    estimated_value: str | None = None
+    has_structural_plans: bool = False
+    structural_signals: list[str] = []
+    structural_engineer_name: str | None = None
+    structural_engineer_license: str | None = None
+    structural_engineer_firm: str | None = None
+    source_url: str | None = None
+    source_system: str
+    last_seen_at: datetime
+    created_at: datetime
+    updated_at: datetime
+
+    @classmethod
+    def from_model(cls, permit: "BuildingPermit") -> "BuildingPermitRead":
+        import json
+
+        from app.models import BuildingPermit as BuildingPermitModel
+
+        assert isinstance(permit, BuildingPermitModel)
+        signals: list[str] = []
+        if permit.structural_signals:
+            try:
+                parsed = json.loads(permit.structural_signals)
+                if isinstance(parsed, list):
+                    signals = [str(s) for s in parsed]
+            except json.JSONDecodeError:
+                signals = []
+        return cls(
+            id=permit.id,
+            jurisdiction_id=permit.jurisdiction_id,
+            external_id=permit.external_id,
+            permit_number=permit.permit_number,
+            permit_type=permit.permit_type,
+            status=permit.status,
+            description=permit.description,
+            address=permit.address,
+            city=permit.city,
+            parcel_number=permit.parcel_number,
+            applied_at=permit.applied_at,
+            issued_at=permit.issued_at,
+            estimated_value=permit.estimated_value,
+            has_structural_plans=permit.has_structural_plans,
+            structural_signals=signals,
+            structural_engineer_name=permit.structural_engineer_name,
+            structural_engineer_license=permit.structural_engineer_license,
+            structural_engineer_firm=permit.structural_engineer_firm,
+            source_url=permit.source_url,
+            source_system=permit.source_system,
+            last_seen_at=permit.last_seen_at,
+            created_at=permit.created_at,
+            updated_at=permit.updated_at,
+        )
+
+
+class PermitSyncRunRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    jurisdiction_id: str
+    status: str
+    records_found: int
+    records_upserted: int
+    structural_found: int
+    message: str | None = None
+    started_at: datetime
+    finished_at: datetime | None = None
+
+
+class PermitImportRequest(BaseModel):
+    permits: list[dict] = Field(default_factory=list)
+
+
+class PermitImportResult(BaseModel):
+    created: int
+    updated: int
+    structural_found: int
+
+
+class PermitStats(BaseModel):
+    total: int
+    with_structural_plans: int
+    with_engineer_named: int
+    by_jurisdiction: dict[str, int]
+

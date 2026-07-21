@@ -274,3 +274,65 @@ export interface ProjectSuggestion {
   project_name: string;
   confidence: number;
 }
+
+export interface Jurisdiction {
+  id: string;
+  name: string;
+  kind: string;
+  system: string;
+  portal_url: string;
+  search_url: string | null;
+  notes: string;
+  crawlable: boolean;
+}
+
+export interface BuildingPermit {
+  id: number;
+  jurisdiction_id: string;
+  external_id: string;
+  permit_number: string;
+  permit_type: string | null;
+  status: string | null;
+  description: string | null;
+  address: string | null;
+  city: string | null;
+  parcel_number: string | null;
+  applied_at: string | null;
+  issued_at: string | null;
+  estimated_value: string | null;
+  has_structural_plans: boolean;
+  structural_signals: string[];
+  structural_engineer_name: string | null;
+  structural_engineer_license: string | null;
+  structural_engineer_firm: string | null;
+  source_url: string | null;
+  source_system: string;
+  last_seen_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PermitSyncRun {
+  id: number;
+  jurisdiction_id: string;
+  status: string;
+  records_found: number;
+  records_upserted: number;
+  structural_found: number;
+  message: string | null;
+  started_at: string;
+  finished_at: string | null;
+}
+
+export interface PermitStats {
+  total: number;
+  with_structural_plans: number;
+  with_engineer_named: number;
+  by_jurisdiction: Record<string, number>;
+}
+
+export interface PermitImportResult {
+  created: number;
+  updated: number;
+  structural_found: number;
+}

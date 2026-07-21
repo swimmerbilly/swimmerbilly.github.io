@@ -1136,6 +1136,60 @@ code {
   margin-top: 0.5rem;
 }
 
+.permit-intro {
+  margin-bottom: 1rem;
+}
+
+.permit-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.permit-stats {
+  margin-bottom: 1rem;
+}
+
+.permit-filters {
+  margin-bottom: 1rem;
+}
+
+.permit-filter-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.permit-filter-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.permit-checkbox {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.5rem !important;
+  padding-bottom: 0.4rem;
+}
+
+.permit-checkbox input {
+  width: auto;
+}
+
+.permit-engineer {
+  margin-top: 0.5rem;
+  color: var(--accent);
+}
+
+.permit-jurisdiction-list {
+  margin-bottom: 1.25rem;
+}
+
 @media (max-width: 900px) {
   .assistant-layout {
     grid-template-columns: 1fr;

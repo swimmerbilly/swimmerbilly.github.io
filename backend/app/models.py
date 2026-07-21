@@ -208,3 +208,50 @@ class AppSetting(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
+
+
+class BuildingPermit(Base):
+    """Building permit pulled from a Boulder County jurisdiction portal."""
+
+    __tablename__ = "building_permits"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    jurisdiction_id: Mapped[str] = mapped_column(String(40), index=True, nullable=False)
+    external_id: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    permit_number: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+    permit_type: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    status: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    address: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    parcel_number: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    applied_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    issued_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    estimated_value: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    has_structural_plans: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    structural_signals: Mapped[str | None] = mapped_column(Text, nullable=True)
+    structural_engineer_name: Mapped[str | None] = mapped_column(String(200), nullable=True, index=True)
+    structural_engineer_license: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    structural_engineer_firm: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    source_system: Mapped[str] = mapped_column(String(40), default="manual")
+    raw_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+
+class PermitSyncRun(Base):
+    __tablename__ = "permit_sync_runs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    jurisdiction_id: Mapped[str] = mapped_column(String(40), index=True, nullable=False)
+    status: Mapped[str] = mapped_column(String(40), default="running")
+    records_found: Mapped[int] = mapped_column(Integer, default=0)
+    records_upserted: Mapped[int] = mapped_column(Integer, default=0)
+    structural_found: Mapped[int] = mapped_column(Integer, default=0)
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
